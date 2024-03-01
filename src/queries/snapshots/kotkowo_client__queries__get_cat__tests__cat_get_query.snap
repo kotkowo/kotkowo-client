@@ -1,0 +1,13 @@
+---
+source: src/queries/get_cat.rs
+expression: operation.query
+---
+query GetCat($id: ID!) {
+  cat(id: $id) {
+    data {
+      attributes {
+        name
+      }
+    }
+  }
+}
