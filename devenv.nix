@@ -4,5 +4,5 @@
     enable = true;
     channel = "nightly";
   };
-  packages = with pkgs; [openssl];
+  packages = with pkgs; [openssl cargo-insta];
 }
