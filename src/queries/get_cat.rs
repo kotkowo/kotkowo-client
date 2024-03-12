@@ -32,7 +32,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn cat_get() {
+    fn cat_get_query() {
         use cynic::QueryBuilder;
         let id = &cynic::Id::new("test");
         let operation = GetCat::build(
