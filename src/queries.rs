@@ -1,1 +1,1 @@
-pub mod get_cat;
+pub mod cat;
