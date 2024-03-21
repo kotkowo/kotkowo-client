@@ -1,0 +1,5 @@
+---
+source: src/lib.rs
+expression: "format!(\"{:?}\", resp)"
+---
+Ok([Cat { name: "Luna TEst" }])
