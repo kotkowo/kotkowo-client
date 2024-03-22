@@ -29,6 +29,7 @@
         }: {
           languages.rust = {
             enable = true;
+            toolchain.rust-analyzer = pkgs.rust-analyzer;
             channel = "nightly";
           };
           packages = with pkgs; [openssl cargo-insta];
