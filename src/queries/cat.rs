@@ -26,7 +26,21 @@ pub struct GetCat {
 
 #[derive(cynic::QueryFragment, Debug)]
 pub struct CatEntityResponseCollection {
+    pub meta: ResponseCollectionMeta,
     pub data: Vec<CatEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ResponseCollectionMeta {
+    pub pagination: Pagination,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct Pagination {
+    pub total: i32,
+    pub page: i32,
+    pub page_size: i32,
+    pub page_count: i32,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
@@ -41,8 +55,14 @@ pub struct CatEntity {
 }
 
 #[derive(cynic::QueryFragment, Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Cat"
+)]
 pub struct Cat {
     pub name: String,
+    pub slug: String,
 }
 
 #[derive(cynic::InputObject, Debug, Default)]

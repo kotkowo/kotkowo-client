@@ -1,6 +1,6 @@
 #![feature(assert_matches)]
 
-mod queries;
+pub mod queries;
 mod schema;
 
 use std::env::VarError;
@@ -11,6 +11,9 @@ use reqwest::header::InvalidHeaderValue;
 use snafu::{OptionExt, ResultExt};
 
 use snafu::{Backtrace, Snafu};
+
+pub use crate::schema::Paged;
+pub use schema::Cat;
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -43,6 +46,13 @@ pub enum Error {
         source: InvalidHeaderValue,
         backtrace: Backtrace,
     },
+}
+
+#[cfg(feature = "elixir_support")]
+impl rustler::Encoder for Error {
+    fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
+        (1, 2).encode(env)
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -80,12 +90,14 @@ pub fn get_cat(id: String) -> Result<queries::cat::Cat> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
 pub enum Sex {
     Male,
     Female,
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
 pub enum Age {
     Senior,
     Adult,
@@ -93,6 +105,7 @@ pub enum Age {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
 pub enum Color {
     Black,
     Gray,
@@ -103,6 +116,11 @@ pub enum Color {
 }
 
 #[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Cat.Filter"
+)]
 pub struct CatFilter {
     sex: Option<Sex>,
     age: Option<Age>,
@@ -116,8 +134,19 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
         let sex_eq: Option<String> = val.sex.map(|sex| format!("{:?}", sex));
         let age_eq: Option<String> = val.age.map(|age| format!("{:?}", age));
         let color_eq: Option<String> = val.color.map(|color| format!("{:?}", color));
-        let tags_in: Option<Vec<Option<String>>> =
-            val.tags.map(|tags| tags.into_iter().map(Some).collect());
+        let tags_filters: Option<Vec<Option<CatTagFiltersInput>>> = val.tags.map(|tags| {
+            tags.into_iter()
+                .map(|tag| {
+                    Some(CatTagFiltersInput {
+                        text: Some(StringFilterInput {
+                            containsi: Some(tag),
+                            ..StringFilterInput::default()
+                        }),
+                        ..CatTagFiltersInput::default()
+                    })
+                })
+                .collect()
+        });
 
         CatFiltersInput {
             castrated: Some(BooleanFilterInput {
@@ -137,10 +166,7 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
                 ..StringFilterInput::default()
             }),
             cat_tags: Some(CatTagFiltersInput {
-                text: Some(StringFilterInput {
-                    in_: tags_in,
-                    ..StringFilterInput::default()
-                }),
+                or: tags_filters,
                 ..CatTagFiltersInput::default()
             }),
             ..CatFiltersInput::default()
@@ -148,7 +174,7 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
     }
 }
 
-pub fn list_cat(filters: Option<CatFilter>) -> Result<Vec<queries::cat::Cat>> {
+pub fn list_cat(filters: Option<CatFilter>) -> Result<Paged<queries::cat::Cat>> {
     use crate::queries::cat::ListCatVariables;
     use cynic::http::ReqwestBlockingExt;
     use cynic::QueryBuilder;
@@ -177,17 +203,23 @@ pub fn list_cat(filters: Option<CatFilter>) -> Result<Vec<queries::cat::Cat>> {
         return Err(Error::RequestResultedInError { message });
     }
 
-    let cat: Result<Vec<queries::cat::Cat>> = response
+    let cats = response
         .data
         .context(MissingAttributeSnafu {})?
         .cats
-        .context(MissingAttributeSnafu {})?
+        .context(MissingAttributeSnafu {})?;
+
+    let meta = cats.meta;
+
+    let cats: Result<Vec<queries::cat::Cat>> = cats
         .data
         .into_iter()
         .map(|cat_entity| cat_entity.attributes.context(MissingAttributeSnafu {}))
         .collect();
 
-    cat
+    let page: Paged<queries::cat::Cat> = Paged::new(meta.pagination, cats?);
+
+    Ok(page)
 }
 
 fn get_client() -> Result<reqwest::blocking::Client> {
@@ -223,6 +255,14 @@ mod tests {
         let resp = list_cat(Some(CatFilter {
             sex: Some(Sex::Female),
             tags: Some(vec!["Test".to_string()]),
+            ..CatFilter::default()
+        }));
+
+        insta::assert_snapshot!(format!("{:?}", resp));
+
+        let resp = list_cat(Some(CatFilter {
+            sex: Some(Sex::Female),
+            tags: Some(vec!["Te".to_string()]),
             ..CatFilter::default()
         }));
 
