@@ -8,12 +8,16 @@ pub struct GetCatVariables<'a> {
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ListCatVariables<'a> {
     pub filters: CatFiltersInput<'a>,
+    pub pagination: PaginationArg,
+
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub sort: Option<Vec<Option<String>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(graphql_type = "Query", variables = "ListCatVariables")]
 pub struct ListCat {
-    #[arguments(filters: $filters)]
+    #[arguments(filters: $filters, pagination: $pagination, sort: $sort)]
     pub cats: Option<CatEntityResponseCollection>,
 }
 
@@ -55,14 +59,159 @@ pub struct CatEntity {
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-#[cfg_attr(
-    feature = "elixir_support",
-    derive(rustler::NifStruct),
-    module = "Kotkowo.Client.Cat"
-)]
 pub struct Cat {
     pub name: String,
     pub slug: String,
+    pub sex: Sex,
+    pub age: Age,
+    #[cynic(rename = "medical_status")]
+    pub medical_status: MedicalStatus,
+    #[cynic(rename = "fiv_felv")]
+    pub fiv_felv: FivFelv,
+    pub healthy: bool,
+    #[cynic(rename = "cat_tags")]
+    pub cat_tags: Option<CatTagRelationResponseCollection>,
+    #[cynic(rename = "description_heading")]
+    pub description_heading: String,
+    pub description: String,
+    #[cynic(rename = "is_dead")]
+    pub is_dead: bool,
+    pub castrated: bool,
+    pub color: Color,
+    pub created_at: Option<DateTime>,
+    pub published_at: Option<DateTime>,
+    pub updated_at: Option<DateTime>,
+    pub images: Option<ImageRelationResponseCollection>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ImageRelationResponseCollection {
+    pub data: Vec<ImageEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ImageEntity {
+    pub attributes: Option<Image>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct Image {
+    pub image: UploadFileEntityResponse,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct UploadFileEntityResponse {
+    pub data: Option<UploadFileEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct UploadFileEntity {
+    pub attributes: Option<UploadFile>,
+    pub id: Option<cynic::Id>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct UploadFile {
+    pub url: String,
+    pub height: Option<i32>,
+    pub mime: String,
+    pub name: String,
+    pub preview_url: Option<String>,
+    pub width: Option<i32>,
+    pub alternative_text: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct CatTagRelationResponseCollection {
+    pub data: Vec<CatTagEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct CatTagEntity {
+    pub attributes: Option<CatTag>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct CatTag {
+    pub text: String,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+#[cynic(graphql_type = "ENUM_CAT_AGE")]
+pub enum Age {
+    #[cynic(rename = "Junior")]
+    Junior,
+    #[cynic(rename = "Adult")]
+    Adult,
+    #[cynic(rename = "Senior")]
+    Senior,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+#[cynic(graphql_type = "ENUM_CAT_COLOR")]
+pub enum Color {
+    #[cynic(rename = "Black")]
+    Black,
+    #[cynic(rename = "Gray")]
+    Gray,
+    #[cynic(rename = "Tricolor")]
+    Tricolor,
+    #[cynic(rename = "Patched")]
+    Patched,
+    #[cynic(rename = "Ginger")]
+    Ginger,
+    #[cynic(rename = "OtherColor")]
+    OtherColor,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+#[cynic(graphql_type = "ENUM_CAT_FIV_FELV")]
+pub enum FivFelv {
+    #[cynic(rename = "Negative")]
+    Negative,
+    #[cynic(rename = "Positive")]
+    Positive,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+#[cynic(graphql_type = "ENUM_CAT_MEDICAL_STATUS")]
+pub enum MedicalStatus {
+    #[cynic(rename = "TestedAndVaccinated")]
+    TestedAndVaccinated,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+#[cynic(graphql_type = "ENUM_CAT_SEX")]
+pub enum Sex {
+    #[cynic(rename = "Male")]
+    Male,
+    #[cynic(rename = "Female")]
+    Female,
+}
+
+#[derive(cynic::InputObject, Debug, Default)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Pagination"
+)]
+pub struct PaginationArg {
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub page: Option<i32>,
+
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub page_size: Option<i32>,
+
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub start: Option<i32>,
+
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<i32>,
 }
 
 #[derive(cynic::InputObject, Debug, Default)]
