@@ -1,6 +1,0 @@
----
-source: src/lib.rs
-assertion_line: 261
-expression: "format!(\"{:?}\", resp)"
----
-Ok(Paged { items: [Cat { name: "Luna TEst", slug: "luna" }], total: 1, page: 1, page_size: 10, page_count: 1 })

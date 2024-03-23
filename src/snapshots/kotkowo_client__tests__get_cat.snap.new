@@ -1,6 +1,0 @@
----
-source: src/lib.rs
-assertion_line: 250
-expression: "format!(\"{:?}\", resp)"
----
-Ok(Cat { name: "Kassadin", slug: "kassadin" })
