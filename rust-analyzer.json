@@ -1,0 +1,9 @@
+{
+    "rust-analyzer.cargo.features": [
+        "elixir_support"
+    ],
+    "rust-analyzer.files.excludeDirs": [
+        ".direnv",
+        ".devenv"
+    ]
+}
