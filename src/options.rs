@@ -11,7 +11,7 @@ use crate::{
 )]
 pub struct Options<
     #[cfg(not(feature = "elixir_support"))] F,
-    #[cfg(feature = "elixir_support")] F: rustler::Encoder + for<'a> rustler::Decoder<'a>,
+    #[cfg(feature = "elixir_support")] F: rustler::Encoder,
 > {
     pub filter: Option<F>,
     pub pagination: Option<PaginationArg>,

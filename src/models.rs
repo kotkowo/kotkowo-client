@@ -131,7 +131,7 @@ impl From<SourceCat> for Cat {
 )]
 pub struct Paged<
     #[cfg(not(feature = "elixir_support"))] T,
-    #[cfg(feature = "elixir_support")] T: rustler::Encoder + for<'a> rustler::Decoder<'a>,
+    #[cfg(feature = "elixir_support")] T: rustler::Encoder,
 > {
     pub items: Vec<T>,
     pub total: i32,
