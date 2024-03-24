@@ -59,56 +59,50 @@ impl From<SourceCat> for Cat {
             ..
         } = value;
 
-        let tags: Vec<String> = cat_tags.map_or_else(
-            || vec![],
-            |tag_collection| {
-                tag_collection
-                    .data
-                    .into_iter()
-                    .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
-                    .collect()
-            },
-        );
+        let tags: Vec<String> = cat_tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
 
-        let images: Vec<Image> = value.images.map_or_else(
-            || vec![],
-            |images| {
-                images
-                    .data
-                    .into_iter()
-                    .flat_map(|image_entity| {
-                        image_entity.attributes.map(|image| {
-                            image.image.data.map(|upload_entity| {
-                                let id = upload_entity.id.map(|id| id.into_inner());
-                                upload_entity.attributes.map(|upload| {
-                                    let UploadFile {
-                                        name,
-                                        url,
-                                        mime,
-                                        width,
-                                        height,
-                                        preview_url,
-                                        alternative_text,
-                                    } = upload;
-                                    Image {
-                                        id,
-                                        name,
-                                        url,
-                                        mime,
-                                        width,
-                                        height,
-                                        preview_url,
-                                        alternative_text,
-                                    }
-                                })
+        let images: Vec<Image> = value.images.map_or_else(Vec::new, |images| {
+            images
+                .data
+                .into_iter()
+                .flat_map(|image_entity| {
+                    image_entity.attributes.map(|image| {
+                        image.image.data.map(|upload_entity| {
+                            let id = upload_entity.id.map(|id| id.into_inner());
+                            upload_entity.attributes.map(|upload| {
+                                let UploadFile {
+                                    name,
+                                    url,
+                                    mime,
+                                    width,
+                                    height,
+                                    preview_url,
+                                    alternative_text,
+                                } = upload;
+                                Image {
+                                    id,
+                                    name,
+                                    url,
+                                    mime,
+                                    width,
+                                    height,
+                                    preview_url,
+                                    alternative_text,
+                                }
                             })
                         })
                     })
-                    .flatten()
-                    .flatten()
-                    .collect()
-            },
-        );
+                })
+                .flatten()
+                .flatten()
+                .collect()
+        });
 
         Cat {
             id: None,
