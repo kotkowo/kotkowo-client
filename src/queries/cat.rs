@@ -1,3 +1,5 @@
+#![allow(non_snake_case)] // please don't abuse, it's for rustler's generated atoms
+
 use crate::schema;
 
 #[derive(cynic::QueryVariables, Debug)]
