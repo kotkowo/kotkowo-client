@@ -150,6 +150,12 @@ pub enum Age {
     Senior,
 }
 
+impl std::fmt::Display for Age {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 #[derive(cynic::Enum, Clone, Copy, Debug)]
 #[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
 #[cynic(graphql_type = "ENUM_CAT_COLOR")]
@@ -166,6 +172,12 @@ pub enum Color {
     Ginger,
     #[cynic(rename = "OtherColor")]
     OtherColor,
+}
+
+impl std::fmt::Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
@@ -194,6 +206,12 @@ pub enum Sex {
     Male,
     #[cynic(rename = "Female")]
     Female,
+}
+
+impl std::fmt::Display for Sex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
 }
 
 #[derive(cynic::InputObject, Debug, Default)]
