@@ -26,6 +26,7 @@ pub struct Image {
 )]
 pub struct Cat {
     pub id: Option<String>,
+    pub age: Age,
     pub name: String,
     pub slug: String,
     pub sex: Sex,
@@ -56,6 +57,7 @@ impl From<SourceCat> for Cat {
             is_dead,
             castrated,
             color,
+            age,
             ..
         } = value;
 
@@ -106,6 +108,7 @@ impl From<SourceCat> for Cat {
 
         Cat {
             id: None,
+            age,
             name,
             slug,
             sex,
@@ -131,7 +134,7 @@ impl From<SourceCat> for Cat {
 )]
 pub struct Paged<
     #[cfg(not(feature = "elixir_support"))] T,
-    #[cfg(feature = "elixir_support")] T: rustler::Encoder + for<'a> rustler::Decoder<'a>,
+    #[cfg(feature = "elixir_support")] T: rustler::Encoder,
 > {
     pub items: Vec<T>,
     pub total: i32,

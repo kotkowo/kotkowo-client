@@ -11,11 +11,59 @@ use crate::{
 )]
 pub struct Options<
     #[cfg(not(feature = "elixir_support"))] F,
-    #[cfg(feature = "elixir_support")] F: rustler::Encoder + for<'a> rustler::Decoder<'a>,
+    #[cfg(feature = "elixir_support")] F: rustler::Encoder,
 > {
     pub filter: Option<F>,
     pub pagination: Option<PaginationArg>,
     pub sort: Vec<String>,
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifTaggedEnum))]
+enum Filter<
+    #[cfg(not(feature = "elixir_support"))] T,
+    #[cfg(feature = "elixir_support")] T: rustler::Encoder,
+> {
+    Equals(T),
+    EqualsCI(T),
+    Contains(T),
+    ContainsCI(T),
+    Or(Vec<T>),
+    In(Vec<T>),
+}
+
+impl<T> From<Filter<T>> for StringFilterInput
+where
+    T: ToString + rustler::Encoder,
+{
+    fn from(value: Filter<T>) -> Self {
+        match value {
+            Filter::Equals(value) => StringFilterInput {
+                eq: Some(value.to_string()),
+                ..StringFilterInput::default()
+            },
+            Filter::EqualsCI(value) => StringFilterInput {
+                eqi: Some(value.to_string()),
+                ..StringFilterInput::default()
+            },
+            Filter::Contains(value) => StringFilterInput {
+                contains: Some(value.to_string()),
+                ..StringFilterInput::default()
+            },
+            Filter::ContainsCI(value) => StringFilterInput {
+                containsi: Some(value.to_string()),
+                ..Default::default()
+            },
+            Filter::Or(values) => StringFilterInput {
+                or: Some(values.into_iter().map(|v| Some(v.to_string())).collect()),
+                ..StringFilterInput::default()
+            },
+            Filter::In(values) => StringFilterInput {
+                in_: Some(values.into_iter().map(|v| Some(v.to_string())).collect()),
+                ..StringFilterInput::default()
+            },
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -25,19 +73,25 @@ pub struct Options<
     module = "Kotkowo.Client.Cat.Filter"
 )]
 pub struct CatFilter {
-    sex: Option<Sex>,
-    age: Option<Age>,
-    color: Option<Color>,
+    sex: Option<Filter<Sex>>,
+    age: Option<Filter<Age>>,
+    color: Option<Filter<Color>>,
     castrated: Option<bool>,
     tags: Option<Vec<String>>,
+    name: Option<Filter<String>>,
 }
 
 impl<'a> From<CatFilter> for CatFiltersInput<'a> {
-    fn from(val: CatFilter) -> Self {
-        let sex_eq: Option<String> = val.sex.map(|sex| format!("{:?}", sex));
-        let age_eq: Option<String> = val.age.map(|age| format!("{:?}", age));
-        let color_eq: Option<String> = val.color.map(|color| format!("{:?}", color));
-        let tags_filters: Option<Vec<Option<CatTagFiltersInput>>> = val.tags.map(|tags| {
+    fn from(value: CatFilter) -> Self {
+        let CatFilter {
+            name,
+            tags,
+            castrated,
+            color,
+            age,
+            sex,
+        } = value;
+        let tags: Option<Vec<Option<CatTagFiltersInput>>> = tags.map(|tags| {
             tags.into_iter()
                 .map(|tag| {
                     Some(CatTagFiltersInput {
@@ -52,25 +106,17 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
         });
 
         CatFiltersInput {
-            castrated: Some(BooleanFilterInput {
-                eq: val.castrated,
-                ..BooleanFilterInput::default()
-            }),
-            color: Some(StringFilterInput {
-                eq: color_eq,
-                ..StringFilterInput::default()
-            }),
-            age: Some(StringFilterInput {
-                eq: age_eq,
-                ..StringFilterInput::default()
-            }),
-            sex: Some(StringFilterInput {
-                eqi: sex_eq,
-                ..StringFilterInput::default()
-            }),
+            name: name.map(|v| v.into()),
+            color: color.map(|v| v.into()),
+            age: age.map(|v| v.into()),
+            sex: sex.map(|v| v.into()),
             cat_tags: Some(CatTagFiltersInput {
-                or: tags_filters,
+                or: tags,
                 ..CatTagFiltersInput::default()
+            }),
+            castrated: Some(BooleanFilterInput {
+                eq: castrated,
+                ..BooleanFilterInput::default()
             }),
             ..CatFiltersInput::default()
         }

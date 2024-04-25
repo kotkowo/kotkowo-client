@@ -78,7 +78,11 @@ pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
         sort,
     };
 
+    // stored in case needed for error message
+    let vars_str = serde_json::to_string(&vars);
+
     let operation = ListCat::build(vars);
+    let query = operation.query.clone();
     let client = get_client()?;
     let response = client
         .post(endpoint)
@@ -86,7 +90,14 @@ pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
         .context(CynicRequestSnafu {})?;
 
     if let Some(err) = response.errors {
-        let message = format!("{:?}", err).to_string();
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
         return Err(Error::RequestResultedInError { message });
     }
 
@@ -168,7 +179,17 @@ pub enum Error {
 #[cfg(feature = "elixir_support")]
 impl rustler::Encoder for Error {
     fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
-        (1, 2).encode(env)
+        let msg: String = match self {
+            Error::MissingAttribute { backtrace } => "MissingAttribute".to_string(),
+            Error::CynicRequestError { source, backtrace } => "CynicRequestError".to_string(),
+            Error::RequestError { source, backtrace } => "ReqwestError".to_string(),
+            Error::RequestResultedInError { message } => message.to_owned(),
+            Error::EnvVarMissing { source, backtrace } => "EnvVarMissing".to_string(),
+            Error::InvalidHeaderValue { source, backtrace } => "InvalidHeaderValue".to_string(),
+        };
+        // let msg = &self.to_string();
+
+        msg.encode(env)
     }
 }
 
