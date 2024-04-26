@@ -32,9 +32,10 @@ enum Filter<
     In(Vec<T>),
 }
 
-impl<T> From<Filter<T>> for StringFilterInput
-where
-    T: ToString + rustler::Encoder,
+impl<
+        #[cfg(not(feature = "elixir_support"))] T: ToString,
+        #[cfg(feature = "elixir_support")] T: ToString + rustler::Encoder,
+    > From<Filter<T>> for StringFilterInput
 {
     fn from(value: Filter<T>) -> Self {
         match value {
