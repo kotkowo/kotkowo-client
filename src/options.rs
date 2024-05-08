@@ -1,9 +1,10 @@
 use crate::{
-    queries::cat::{BooleanFilterInput, CatFiltersInput, CatTagFiltersInput, StringFilterInput},
+    queries::cat::{CatFiltersInput, CatTagFiltersInput},
+    queries::commons::{BooleanFilterInput, StringFilterInput},
     Age, Color, PaginationArg, Sex,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[cfg_attr(
     feature = "elixir_support",
     derive(rustler::NifStruct),

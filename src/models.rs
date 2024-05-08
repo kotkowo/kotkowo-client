@@ -1,5 +1,20 @@
-pub use crate::queries::cat::{Age, Color, FivFelv, MedicalStatus, Pagination, Sex};
-use crate::queries::cat::{Cat as SourceCat, UploadFile};
+use std::env::VarError;
+
+use crate::queries::{
+    announcement::Announcement as SourceAnnouncement,
+    cat::Cat as SourceCat,
+    commons::{UploadFile, UploadFileEntityResponse},
+};
+pub use crate::queries::{
+    cat::{Age, Color, FivFelv, MedicalStatus, Sex},
+    commons::Pagination,
+};
+
+use cynic::http::CynicReqwestError;
+use reqwest::header::InvalidHeaderValue;
+use snafu::OptionExt;
+
+use snafu::{Backtrace, Snafu};
 
 #[derive(Debug)]
 #[cfg_attr(
@@ -16,6 +31,48 @@ pub struct Image {
     pub name: String,
     pub preview_url: Option<String>,
     pub alternative_text: Option<String>,
+}
+
+impl TryFrom<UploadFileEntityResponse> for Image {
+    type Error = Error;
+    fn try_from(value: UploadFileEntityResponse) -> Result<Image, Error> {
+        let data = value.data.context(MissingAttributeSnafu {})?;
+        let attributes = data.attributes.context(MissingAttributeSnafu {})?;
+        Ok(Image {
+            id: data.id.map(|id| id.into_inner()),
+            alternative_text: attributes.alternative_text,
+            preview_url: attributes.preview_url,
+            mime: attributes.mime,
+            url: attributes.url,
+            width: attributes.width,
+            height: attributes.height,
+            name: attributes.name,
+        })
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Announcement"
+)]
+pub struct Announcement {
+    pub id: Option<String>,
+    pub title: String,
+    pub image: Option<Image>,
+}
+
+impl From<SourceAnnouncement> for Announcement {
+    fn from(value: SourceAnnouncement) -> Self {
+        let SourceAnnouncement { title, image, .. } = value;
+        let image: Option<Image> = image.try_into().ok();
+        Announcement {
+            id: None,
+            title,
+            image,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -143,8 +200,12 @@ pub struct Paged<
     pub page_count: i32,
 }
 
-impl Paged<Cat> {
-    pub fn new(pagination: Pagination, items: Vec<Cat>) -> Paged<Cat> {
+impl<
+        #[cfg(not(feature = "elixir_support"))] T,
+        #[cfg(feature = "elixir_support")] T: rustler::Encoder,
+    > Paged<T>
+{
+    pub fn new(pagination: Pagination, items: Vec<T>) -> Paged<T> {
         Paged {
             items,
             total: pagination.total,
@@ -153,4 +214,36 @@ impl Paged<Cat> {
             page_count: pagination.page_count,
         }
     }
+}
+#[derive(Debug, Snafu)]
+pub enum Error {
+    #[snafu(display("Missing or none attribute"))]
+    MissingAttribute { backtrace: Backtrace },
+
+    #[snafu(display("Request failure"))]
+    CynicRequestError {
+        source: CynicReqwestError,
+        backtrace: Backtrace,
+    },
+
+    #[snafu(display("Request failure"))]
+    RequestError {
+        source: reqwest::Error,
+        backtrace: Backtrace,
+    },
+
+    #[snafu(display("{:?}", message))]
+    RequestResultedInError { message: String },
+
+    #[snafu(display("Environment variable missing"))]
+    EnvVarMissing {
+        source: VarError,
+        backtrace: Backtrace,
+    },
+
+    #[snafu(display("Invalid header value"))]
+    InvalidHeaderValue {
+        source: InvalidHeaderValue,
+        backtrace: Backtrace,
+    },
 }

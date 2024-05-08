@@ -5,8 +5,11 @@ use crate::schema;
 
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ListAnnouncementsVariables<'a> {
+    #[cynic(skip_serializing_if = "Option::is_none")]
     pub filters: Option<AnnouncementFiltersInput<'a>>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
     pub pagination: Option<PaginationArg>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
     pub sort: Option<Vec<Option<String>>>,
 }
 

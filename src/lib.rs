@@ -3,9 +3,9 @@ mod options;
 mod queries;
 mod schema;
 
-pub use models::{Age, Cat, Color, Paged, Sex};
+pub use models::{Age, Announcement, Cat, Color, Paged, Sex};
 pub use options::{CatFilter, Options};
-pub use queries::cat::PaginationArg;
+pub use queries::commons::PaginationArg;
 
 use std::env::VarError;
 
@@ -16,8 +16,80 @@ use snafu::{OptionExt, ResultExt};
 
 use snafu::{Backtrace, Snafu};
 
+use crate::schema::AnnouncementFiltersInput;
+
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+pub fn list_announcement(
+    options: Options<AnnouncementFiltersInput>,
+) -> Result<Paged<Announcement>, Error> {
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+    use queries::announcement::{ListAnnouncements, ListAnnouncementsVariables};
+
+    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+
+    let pagination = options.pagination;
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+
+    let vars = ListAnnouncementsVariables {
+        filters: None,
+        pagination,
+        sort,
+    };
+    let vars_str = serde_json::to_string(&vars);
+    let operation = ListAnnouncements::build(vars);
+    let query = operation.query.clone();
+
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_announcements = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .announcements
+        .context(MissingAttributeSnafu {})?;
+
+    let meta = source_announcements.meta;
+
+    let announcements: Result<Vec<Announcement>, Error> = source_announcements
+        .data
+        .into_iter()
+        .map(|announcement_entity| {
+            let id = announcement_entity.id.map(|id| id.into_inner());
+            announcement_entity
+                .attributes
+                .context(MissingAttributeSnafu {})
+                .map(|announcement| Announcement {
+                    id,
+                    ..announcement.into()
+                })
+        })
+        .collect();
+
+    let page: Paged<Announcement> = Paged::new(meta.pagination, announcements?);
+
+    Ok(page)
+}
 
 pub fn get_cat(id: String) -> Result<Cat, Error> {
     use cynic::http::ReqwestBlockingExt;
@@ -192,12 +264,19 @@ impl rustler::Encoder for Error {
         msg.encode(env)
     }
 }
+impl Default for AnnouncementFiltersInput {
+    fn default() -> Self {
+        AnnouncementFiltersInput {}
+    }
+}
 
 #[cfg(test)]
 mod tests {
+    use crate::{list_announcement, Options};
+
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn list_announcement_test() {
+        let paged = list_announcement(Options::default());
+        assert!(paged.is_ok());
     }
 }
