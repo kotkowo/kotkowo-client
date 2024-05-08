@@ -7,7 +7,7 @@ use crate::schema;
 pub struct ListAnnouncementsVariables<'a> {
     pub filters: Option<AnnouncementFiltersInput<'a>>,
     pub pagination: Option<PaginationArg>,
-    pub sort: Option<Vec<Option<&'a str>>>,
+    pub sort: Option<Vec<Option<String>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
