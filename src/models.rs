@@ -2,6 +2,10 @@ use std::env::VarError;
 
 use crate::queries::{
     announcement::Announcement as SourceAnnouncement,
+    announcement_article::{
+        Announcement as SourceArticleAnnouncement, Article as SourceArticle, ArticleEntity,
+        ArticleEntityResponse,
+    },
     cat::Cat as SourceCat,
     commons::{UploadFile, UploadFileEntityResponse},
 };
@@ -48,6 +52,42 @@ impl TryFrom<UploadFileEntityResponse> for Image {
             height: attributes.height,
             name: attributes.name,
         })
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Article"
+)]
+pub struct Article {
+    pub id: Option<String>,
+    pub title: String,
+    pub image: Option<Image>,
+    pub introduction: String,
+    pub content: String,
+}
+
+impl From<SourceArticleAnnouncement> for Article {
+    fn from(value: SourceArticleAnnouncement) -> Self {
+        let SourceArticleAnnouncement { article, title } = value;
+        let ArticleEntityResponse { data } = article.unwrap();
+        let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {}).unwrap();
+        let SourceArticle {
+            image,
+            content,
+            introduction,
+        } = attributes.context(MissingAttributeSnafu {}).unwrap();
+        let image: Option<Image> = image.try_into().ok();
+        let id: Option<String> = id.map(|id| id.into_inner());
+        Article {
+            id,
+            title,
+            image,
+            content,
+            introduction,
+        }
     }
 }
 

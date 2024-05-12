@@ -3,7 +3,7 @@ mod options;
 mod queries;
 mod schema;
 
-pub use models::{Age, Announcement, Cat, Color, Paged, Sex};
+pub use models::{Age, Announcement, Article, Cat, Color, Paged, Sex};
 pub use options::{AnnouncementFilter, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
@@ -18,7 +18,50 @@ use snafu::{Backtrace, Snafu};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub fn get_announcement_article(announcement_id: String) -> Result<Article, Error> {
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+    use queries::announcement_article::{GetArticle, GetArticleVariables};
 
+    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+    let id: cynic::Id = announcement_id.into();
+    let vars = GetArticleVariables { id: &id };
+    let vars_str = serde_json::to_string(&vars);
+    let operation = GetArticle::build(vars);
+    let query = operation.query.clone();
+
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_announcement = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .announcement
+        .context(MissingAttributeSnafu {})?
+        .data
+        .context(MissingAttributeSnafu {})?
+        .attributes
+        .context(MissingAttributeSnafu {})?;
+
+    let article: Article = source_announcement.into();
+
+    Ok(article)
+}
 pub fn list_announcement(
     options: Options<AnnouncementFilter>,
 ) -> Result<Paged<Announcement>, Error> {
@@ -265,11 +308,16 @@ impl rustler::Encoder for Error {
 
 #[cfg(test)]
 mod tests {
-    use crate::{list_announcement, Options};
+    use crate::{get_announcement_article, list_announcement, Options};
 
     #[test]
     fn list_announcement_test() {
         let paged = list_announcement(Options::default());
         assert!(paged.is_ok());
+    }
+    #[test]
+    fn get_announcement_article_test() {
+        let article = get_announcement_article("1".to_string());
+        println!("{:?}", article)
     }
 }
