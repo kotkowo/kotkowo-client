@@ -318,6 +318,6 @@ mod tests {
     #[test]
     fn get_announcement_article_test() {
         let article = get_announcement_article("1".to_string());
-        println!("{:?}", article)
+        assert!(article.is_ok());
     }
 }
