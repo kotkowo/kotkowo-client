@@ -4,7 +4,7 @@ mod queries;
 mod schema;
 
 pub use models::{Age, Announcement, Cat, Color, Paged, Sex};
-pub use options::{CatFilter, Options};
+pub use options::{AnnouncementFilter, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
 use std::env::VarError;
@@ -16,13 +16,11 @@ use snafu::{OptionExt, ResultExt};
 
 use snafu::{Backtrace, Snafu};
 
-use crate::schema::AnnouncementFiltersInput;
-
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 pub fn list_announcement(
-    options: Options<AnnouncementFiltersInput>,
+    options: Options<AnnouncementFilter>,
 ) -> Result<Paged<Announcement>, Error> {
     use cynic::http::ReqwestBlockingExt;
     use cynic::QueryBuilder;
@@ -262,11 +260,6 @@ impl rustler::Encoder for Error {
         // let msg = &self.to_string();
 
         msg.encode(env)
-    }
-}
-impl Default for AnnouncementFiltersInput {
-    fn default() -> Self {
-        AnnouncementFiltersInput {}
     }
 }
 
