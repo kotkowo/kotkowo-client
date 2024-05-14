@@ -37,8 +37,26 @@ pub struct Announcement {
     pub created_at: Option<DateTime>,
     pub updated_at: Option<DateTime>,
     pub title: String,
+
+    #[cynic(rename = "announcement_tags")]
+    pub announcement_tags: Option<AnnouncementTagRelationResponseCollection>,
     pub image: UploadFileEntityResponse,
     pub published_at: Option<DateTime>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct AnnouncementTagRelationResponseCollection {
+    pub data: Vec<AnnouncementTagEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct AnnouncementTagEntity {
+    pub attributes: Option<AnnouncementTag>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct AnnouncementTag {
+    pub text: String,
 }
 
 #[derive(cynic::InputObject, Debug)]
