@@ -60,16 +60,26 @@ impl TryFrom<UploadFileEntityResponse> for Image {
 pub struct Announcement {
     pub id: Option<String>,
     pub title: String,
+    pub tags: Vec<String>,
     pub image: Option<Image>,
 }
 
 impl From<SourceAnnouncement> for Announcement {
     fn from(value: SourceAnnouncement) -> Self {
-        let SourceAnnouncement { title, image, .. } = value;
+        let SourceAnnouncement { title, image, announcement_tags, .. } = value;
         let image: Option<Image> = image.try_into().ok();
+        let tags: Vec<String> = announcement_tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
+
         Announcement {
             id: None,
             title,
+            tags,
             image,
         }
     }
