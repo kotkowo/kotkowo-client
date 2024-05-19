@@ -67,7 +67,7 @@ impl TryFrom<SourceArticleAnnouncement> for Article {
     type Error = Error;
     fn try_from(value: SourceArticleAnnouncement) -> Result<Article, Error> {
         let SourceArticleAnnouncement { article, title } = value;
-        let ArticleEntityResponse { data } = article.unwrap();
+        let ArticleEntityResponse { data } = article.context(MissingAttributeSnafu {})?;
         let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {})?;
         let SourceArticle {
             image,
