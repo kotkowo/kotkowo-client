@@ -1,5 +1,4 @@
-use std::env::VarError;
-
+use crate::errors::{Error, MissingAttributeSnafu};
 use crate::queries::{
     announcement::Announcement as SourceAnnouncement,
     announcement_article::{
@@ -13,12 +12,7 @@ pub use crate::queries::{
     cat::{Age, Color, FivFelv, MedicalStatus, Sex},
     commons::Pagination,
 };
-
-use cynic::http::CynicReqwestError;
-use reqwest::header::InvalidHeaderValue;
 use snafu::OptionExt;
-
-use snafu::{Backtrace, Snafu};
 
 #[derive(Debug)]
 #[cfg_attr(
@@ -69,25 +63,26 @@ pub struct Article {
     pub content: String,
 }
 
-impl From<SourceArticleAnnouncement> for Article {
-    fn from(value: SourceArticleAnnouncement) -> Self {
+impl TryFrom<SourceArticleAnnouncement> for Article {
+    type Error = Error;
+    fn try_from(value: SourceArticleAnnouncement) -> Result<Article, Error> {
         let SourceArticleAnnouncement { article, title } = value;
         let ArticleEntityResponse { data } = article.unwrap();
-        let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {}).unwrap();
+        let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {})?;
         let SourceArticle {
             image,
             content,
             introduction,
-        } = attributes.context(MissingAttributeSnafu {}).unwrap();
+        } = attributes.context(MissingAttributeSnafu {})?;
         let image: Option<Image> = image.try_into().ok();
         let id: Option<String> = id.map(|id| id.into_inner());
-        Article {
+        Ok(Article {
             id,
             title,
             image,
             content,
             introduction,
-        }
+        })
     }
 }
 
@@ -106,7 +101,12 @@ pub struct Announcement {
 
 impl From<SourceAnnouncement> for Announcement {
     fn from(value: SourceAnnouncement) -> Self {
-        let SourceAnnouncement { title, image, announcement_tags, .. } = value;
+        let SourceAnnouncement {
+            title,
+            image,
+            announcement_tags,
+            ..
+        } = value;
         let image: Option<Image> = image.try_into().ok();
         let tags: Vec<String> = announcement_tags.map_or_else(Vec::new, |tag_collection| {
             tag_collection
@@ -264,36 +264,4 @@ impl<
             page_count: pagination.page_count,
         }
     }
-}
-#[derive(Debug, Snafu)]
-pub enum Error {
-    #[snafu(display("Missing or none attribute"))]
-    MissingAttribute { backtrace: Backtrace },
-
-    #[snafu(display("Request failure"))]
-    CynicRequestError {
-        source: CynicReqwestError,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("Request failure"))]
-    RequestError {
-        source: reqwest::Error,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("{:?}", message))]
-    RequestResultedInError { message: String },
-
-    #[snafu(display("Environment variable missing"))]
-    EnvVarMissing {
-        source: VarError,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("Invalid header value"))]
-    InvalidHeaderValue {
-        source: InvalidHeaderValue,
-        backtrace: Backtrace,
-    },
 }

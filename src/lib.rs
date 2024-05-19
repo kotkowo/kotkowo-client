@@ -1,20 +1,16 @@
+mod errors;
 mod models;
 mod options;
 mod queries;
 mod schema;
 
+pub use errors::*;
 pub use models::{Age, Announcement, Article, Cat, Color, Paged, Sex};
 pub use options::{AnnouncementFilter, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
-use std::env::VarError;
-
-use cynic::http::CynicReqwestError;
 use queries::cat::CatFiltersInput;
-use reqwest::header::InvalidHeaderValue;
 use snafu::{OptionExt, ResultExt};
-
-use snafu::{Backtrace, Snafu};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -58,9 +54,7 @@ pub fn get_announcement_article(announcement_id: String) -> Result<Article, Erro
         .attributes
         .context(MissingAttributeSnafu {})?;
 
-    let article: Article = source_announcement.into();
-
-    Ok(article)
+    source_announcement.try_into()
 }
 pub fn list_announcement(
     options: Options<AnnouncementFilter>,
@@ -254,56 +248,6 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
         .context(RequestSnafu {})?;
 
     Ok(client)
-}
-
-#[derive(Debug, Snafu)]
-pub enum Error {
-    #[snafu(display("Missing or none attribute"))]
-    MissingAttribute { backtrace: Backtrace },
-
-    #[snafu(display("Request failure"))]
-    CynicRequestError {
-        source: CynicReqwestError,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("Request failure"))]
-    RequestError {
-        source: reqwest::Error,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("{:?}", message))]
-    RequestResultedInError { message: String },
-
-    #[snafu(display("Environment variable missing"))]
-    EnvVarMissing {
-        source: VarError,
-        backtrace: Backtrace,
-    },
-
-    #[snafu(display("Invalid header value"))]
-    InvalidHeaderValue {
-        source: InvalidHeaderValue,
-        backtrace: Backtrace,
-    },
-}
-
-#[cfg(feature = "elixir_support")]
-impl rustler::Encoder for Error {
-    fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
-        let msg: String = match self {
-            Error::MissingAttribute { backtrace } => "MissingAttribute".to_string(),
-            Error::CynicRequestError { source, backtrace } => "CynicRequestError".to_string(),
-            Error::RequestError { source, backtrace } => "ReqwestError".to_string(),
-            Error::RequestResultedInError { message } => message.to_owned(),
-            Error::EnvVarMissing { source, backtrace } => "EnvVarMissing".to_string(),
-            Error::InvalidHeaderValue { source, backtrace } => "InvalidHeaderValue".to_string(),
-        };
-        // let msg = &self.to_string();
-
-        msg.encode(env)
-    }
 }
 
 #[cfg(test)]
