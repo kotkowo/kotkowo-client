@@ -41,24 +41,22 @@ pub enum Error {
 impl rustler::Encoder for Error {
     fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
         let msg: String = match self {
-            Error::MissingAttribute { backtrace: _ } => "MissingAttribute".to_string(),
-            Error::CynicRequestError {
-                source: _,
-                backtrace: _,
-            } => "CynicRequestError".to_string(),
-            Error::RequestError {
-                source: _,
-                backtrace: _,
-            } => "ReqwestError".to_string(),
+            Error::MissingAttribute { backtrace } => {
+                format!("MissingAttribute:\n Backtrace:\n {}", backtrace)
+            }
+            Error::CynicRequestError { source, backtrace } => {
+                format!("CynicRequestError\nSource: {source}\nBacktrace: {backtrace}")
+            }
+            Error::RequestError { source, backtrace } => {
+                format!("ReqwestError\n Source: {source}\n Backtrace: {backtrace}")
+            }
             Error::RequestResultedInError { message } => message.to_owned(),
-            Error::EnvVarMissing {
-                source: _,
-                backtrace: _,
-            } => "EnvVarMissing".to_string(),
-            Error::InvalidHeaderValue {
-                source: _,
-                backtrace: _,
-            } => "InvalidHeaderValue".to_string(),
+            Error::EnvVarMissing { source, backtrace } => {
+                format!("EnvVarMissing\n Source: {source}\n Backtrace: {backtrace}")
+            }
+            Error::InvalidHeaderValue { source, backtrace } => {
+                format!("InvalidHeaderValue\n Source: {source}\n Backtrace: {backtrace}")
+            }
         };
         // let msg = &self.to_string();
 
