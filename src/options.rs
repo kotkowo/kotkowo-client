@@ -20,6 +20,7 @@ pub struct Options<
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 #[cfg_attr(feature = "elixir_support", derive(rustler::NifTaggedEnum))]
 enum Filter<
     #[cfg(not(feature = "elixir_support"))] T,
