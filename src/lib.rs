@@ -11,6 +11,7 @@ pub use queries::commons::PaginationArg;
 
 use queries::cat::CatFiltersInput;
 use snafu::{OptionExt, ResultExt};
+use std::env;
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -19,7 +20,7 @@ pub fn get_announcement_article(announcement_id: String) -> Result<Article, Erro
     use cynic::QueryBuilder;
     use queries::announcement_article::{GetArticle, GetArticleVariables};
 
-    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
     let id: cynic::Id = announcement_id.into();
     let vars = GetArticleVariables { id: &id };
     let vars_str = serde_json::to_string(&vars);
@@ -63,7 +64,7 @@ pub fn list_announcement(
     use cynic::QueryBuilder;
     use queries::announcement::{ListAnnouncements, ListAnnouncementsVariables};
 
-    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
 
     let pagination = options.pagination;
     let sort: Option<Vec<Option<String>>> = match options.sort {
@@ -132,7 +133,7 @@ pub fn get_cat(id: String) -> Result<Cat, Error> {
     use queries::cat::{GetCat, GetCatVariables};
 
     let id: cynic::Id = id.into();
-    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
     let operation = GetCat::build(GetCatVariables { id: &id });
     let client = get_client()?;
     let response = client
@@ -169,7 +170,7 @@ pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
     use cynic::QueryBuilder;
     use queries::cat::ListCat;
 
-    let endpoint = "https://kotkowo-admin.ravensiris.xyz/graphql";
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
 
     let filters: CatFiltersInput = options
         .filter
@@ -234,7 +235,7 @@ pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
 }
 
 fn get_client() -> Result<reqwest::blocking::Client, Error> {
-    let api_key = std::env::var("STRAPI_KEY").context(EnvVarMissingSnafu {})?;
+    let api_key = env::var("STRAPI_KEY").context(EnvVarMissingSnafu {})?;
     let mut headers = reqwest::header::HeaderMap::with_capacity(1);
     headers.insert(
         reqwest::header::AUTHORIZATION,
