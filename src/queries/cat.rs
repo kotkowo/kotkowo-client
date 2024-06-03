@@ -215,9 +215,6 @@ pub struct CatFiltersInput<'a> {
     #[cynic(rename = "is_dead", skip_serializing_if = "Option::is_none")]
     pub is_dead: Option<BooleanFilterInput>,
 
-    #[cynic(rename = "adopted_cat", skip_serializing_if = "Option::is_none")]
-    pub adopted_cat: Option<AdoptedCatFiltersInput<'a>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTimeFilterInput>,
 

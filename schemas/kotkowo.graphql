@@ -1,16 +1,13 @@
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
+# The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 scalar JSON
 
-"""
-A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
-"""
+# A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 scalar DateTime
 
-"""
-The `Upload` scalar type represents a file upload.
-"""
+# A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+scalar Date
+
+# The `Upload` scalar type represents a file upload.
 scalar Upload
 
 type Pagination {
@@ -152,6 +149,31 @@ input FloatFilterInput {
   in: [Float]
   notIn: [Float]
   between: [Float]
+}
+
+input DateFilterInput {
+  and: [Date]
+  or: [Date]
+  not: DateFilterInput
+  eq: Date
+  eqi: Date
+  ne: Date
+  nei: Date
+  startsWith: Date
+  endsWith: Date
+  contains: Date
+  notContains: Date
+  containsi: Date
+  notContainsi: Date
+  gt: Date
+  gte: Date
+  lt: Date
+  lte: Date
+  null: Boolean
+  notNull: Boolean
+  in: [Date]
+  notIn: [Date]
+  between: [Date]
 }
 
 input DateTimeFilterInput {
@@ -347,6 +369,123 @@ type UploadFolderRelationResponseCollection {
   data: [UploadFolderEntity!]!
 }
 
+enum ENUM_CONTENTRELEASESRELEASE_STATUS {
+  ready
+  blocked
+  failed
+  done
+  empty
+}
+
+input ContentReleasesReleaseFiltersInput {
+  id: IDFilterInput
+  name: StringFilterInput
+  releasedAt: DateTimeFilterInput
+  scheduledAt: DateTimeFilterInput
+  timezone: StringFilterInput
+  status: StringFilterInput
+  actions: ContentReleasesReleaseActionFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  and: [ContentReleasesReleaseFiltersInput]
+  or: [ContentReleasesReleaseFiltersInput]
+  not: ContentReleasesReleaseFiltersInput
+}
+
+input ContentReleasesReleaseInput {
+  name: String
+  releasedAt: DateTime
+  scheduledAt: DateTime
+  timezone: String
+  status: ENUM_CONTENTRELEASESRELEASE_STATUS
+  actions: [ID]
+}
+
+type ContentReleasesRelease {
+  name: String!
+  releasedAt: DateTime
+  scheduledAt: DateTime
+  timezone: String
+  status: ENUM_CONTENTRELEASESRELEASE_STATUS!
+  actions(
+    filters: ContentReleasesReleaseActionFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+  ): ContentReleasesReleaseActionRelationResponseCollection
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ContentReleasesReleaseEntity {
+  id: ID
+  attributes: ContentReleasesRelease
+}
+
+type ContentReleasesReleaseEntityResponse {
+  data: ContentReleasesReleaseEntity
+}
+
+type ContentReleasesReleaseEntityResponseCollection {
+  data: [ContentReleasesReleaseEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+enum ENUM_CONTENTRELEASESRELEASEACTION_TYPE {
+  publish
+  unpublish
+}
+
+input ContentReleasesReleaseActionFiltersInput {
+  id: IDFilterInput
+  type: StringFilterInput
+  contentType: StringFilterInput
+  locale: StringFilterInput
+  release: ContentReleasesReleaseFiltersInput
+  isEntryValid: BooleanFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  and: [ContentReleasesReleaseActionFiltersInput]
+  or: [ContentReleasesReleaseActionFiltersInput]
+  not: ContentReleasesReleaseActionFiltersInput
+}
+
+input ContentReleasesReleaseActionInput {
+  type: ENUM_CONTENTRELEASESRELEASEACTION_TYPE
+  contentType: String
+  locale: String
+  release: ID
+  isEntryValid: Boolean
+}
+
+type ContentReleasesReleaseAction {
+  type: ENUM_CONTENTRELEASESRELEASEACTION_TYPE!
+  entry: GenericMorph
+  contentType: String!
+  locale: String
+  release: ContentReleasesReleaseEntityResponse
+  isEntryValid: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ContentReleasesReleaseActionEntity {
+  id: ID
+  attributes: ContentReleasesReleaseAction
+}
+
+type ContentReleasesReleaseActionEntityResponse {
+  data: ContentReleasesReleaseActionEntity
+}
+
+type ContentReleasesReleaseActionEntityResponseCollection {
+  data: [ContentReleasesReleaseActionEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+type ContentReleasesReleaseActionRelationResponseCollection {
+  data: [ContentReleasesReleaseActionEntity!]!
+}
+
 input I18NLocaleFiltersInput {
   id: IDFilterInput
   name: StringFilterInput
@@ -522,6 +661,7 @@ type UsersPermissionsUserRelationResponseCollection {
 input AdoptedCatFiltersInput {
   id: IDFilterInput
   adoption_date: DateTimeFilterInput
+  cat: CatFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -532,11 +672,13 @@ input AdoptedCatFiltersInput {
 
 input AdoptedCatInput {
   adoption_date: DateTime
+  cat: ID
   publishedAt: DateTime
 }
 
 type AdoptedCat {
   adoption_date: DateTime!
+  cat: CatEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -688,6 +830,49 @@ type ArticleEntityResponseCollection {
   meta: ResponseCollectionMeta!
 }
 
+input ArticleViewFiltersInput {
+  id: IDFilterInput
+  client_adress: StringFilterInput
+  view_date: DateFilterInput
+  article: ArticleFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [ArticleViewFiltersInput]
+  or: [ArticleViewFiltersInput]
+  not: ArticleViewFiltersInput
+}
+
+input ArticleViewInput {
+  client_adress: String
+  view_date: Date
+  article: ID
+  publishedAt: DateTime
+}
+
+type ArticleView {
+  client_adress: String!
+  view_date: Date!
+  article: ArticleEntityResponse
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type ArticleViewEntity {
+  id: ID
+  attributes: ArticleView
+}
+
+type ArticleViewEntityResponse {
+  data: ArticleViewEntity
+}
+
+type ArticleViewEntityResponseCollection {
+  data: [ArticleViewEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
 enum ENUM_CAT_SEX {
   Male
   Female
@@ -733,7 +918,6 @@ input CatFiltersInput {
   cat_tags: CatTagFiltersInput
   color: StringFilterInput
   is_dead: BooleanFilterInput
-  adopted_cat: AdoptedCatFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -757,7 +941,6 @@ input CatInput {
   cat_tags: [ID]
   color: ENUM_CAT_COLOR
   is_dead: Boolean
-  adopted_cat: ID
   publishedAt: DateTime
 }
 
@@ -784,7 +967,6 @@ type Cat {
   ): CatTagRelationResponseCollection
   color: ENUM_CAT_COLOR!
   is_dead: Boolean!
-  adopted_cat: AdoptedCatEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -884,6 +1066,8 @@ type ImageRelationResponseCollection {
 union GenericMorph =
     UploadFile
   | UploadFolder
+  | ContentReleasesRelease
+  | ContentReleasesReleaseAction
   | I18NLocale
   | UsersPermissionsPermission
   | UsersPermissionsRole
@@ -892,6 +1076,7 @@ union GenericMorph =
   | Announcement
   | AnnouncementTag
   | Article
+  | ArticleView
   | Cat
   | CatTag
   | Image
@@ -971,6 +1156,20 @@ type Query {
     pagination: PaginationArg = {}
     sort: [String] = []
   ): UploadFolderEntityResponseCollection
+  contentReleasesRelease(id: ID): ContentReleasesReleaseEntityResponse
+  contentReleasesReleases(
+    filters: ContentReleasesReleaseFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+  ): ContentReleasesReleaseEntityResponseCollection
+  contentReleasesReleaseAction(
+    id: ID
+  ): ContentReleasesReleaseActionEntityResponse
+  contentReleasesReleaseActions(
+    filters: ContentReleasesReleaseActionFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+  ): ContentReleasesReleaseActionEntityResponseCollection
   i18NLocale(id: ID): I18NLocaleEntityResponse
   i18NLocales(
     filters: I18NLocaleFiltersInput
@@ -1016,6 +1215,13 @@ type Query {
     sort: [String] = []
     publicationState: PublicationState = LIVE
   ): ArticleEntityResponseCollection
+  articleView(id: ID): ArticleViewEntityResponse
+  articleViews(
+    filters: ArticleViewFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): ArticleViewEntityResponseCollection
   cat(id: ID): CatEntityResponse
   cats(
     filters: CatFiltersInput
@@ -1043,20 +1249,52 @@ type Mutation {
   updateUploadFile(id: ID!, data: UploadFileInput!): UploadFileEntityResponse
   deleteUploadFile(id: ID!): UploadFileEntityResponse
   createUploadFolder(data: UploadFolderInput!): UploadFolderEntityResponse
-  updateUploadFolder(id: ID!, data: UploadFolderInput!): UploadFolderEntityResponse
+  updateUploadFolder(
+    id: ID!
+    data: UploadFolderInput!
+  ): UploadFolderEntityResponse
   deleteUploadFolder(id: ID!): UploadFolderEntityResponse
+  createContentReleasesRelease(
+    data: ContentReleasesReleaseInput!
+  ): ContentReleasesReleaseEntityResponse
+  updateContentReleasesRelease(
+    id: ID!
+    data: ContentReleasesReleaseInput!
+  ): ContentReleasesReleaseEntityResponse
+  deleteContentReleasesRelease(id: ID!): ContentReleasesReleaseEntityResponse
+  createContentReleasesReleaseAction(
+    data: ContentReleasesReleaseActionInput!
+  ): ContentReleasesReleaseActionEntityResponse
+  updateContentReleasesReleaseAction(
+    id: ID!
+    data: ContentReleasesReleaseActionInput!
+  ): ContentReleasesReleaseActionEntityResponse
+  deleteContentReleasesReleaseAction(
+    id: ID!
+  ): ContentReleasesReleaseActionEntityResponse
   createAdoptedCat(data: AdoptedCatInput!): AdoptedCatEntityResponse
   updateAdoptedCat(id: ID!, data: AdoptedCatInput!): AdoptedCatEntityResponse
   deleteAdoptedCat(id: ID!): AdoptedCatEntityResponse
   createAnnouncement(data: AnnouncementInput!): AnnouncementEntityResponse
-  updateAnnouncement(id: ID!, data: AnnouncementInput!): AnnouncementEntityResponse
+  updateAnnouncement(
+    id: ID!
+    data: AnnouncementInput!
+  ): AnnouncementEntityResponse
   deleteAnnouncement(id: ID!): AnnouncementEntityResponse
-  createAnnouncementTag(data: AnnouncementTagInput!): AnnouncementTagEntityResponse
-  updateAnnouncementTag(id: ID!, data: AnnouncementTagInput!): AnnouncementTagEntityResponse
+  createAnnouncementTag(
+    data: AnnouncementTagInput!
+  ): AnnouncementTagEntityResponse
+  updateAnnouncementTag(
+    id: ID!
+    data: AnnouncementTagInput!
+  ): AnnouncementTagEntityResponse
   deleteAnnouncementTag(id: ID!): AnnouncementTagEntityResponse
   createArticle(data: ArticleInput!): ArticleEntityResponse
   updateArticle(id: ID!, data: ArticleInput!): ArticleEntityResponse
   deleteArticle(id: ID!): ArticleEntityResponse
+  createArticleView(data: ArticleViewInput!): ArticleViewEntityResponse
+  updateArticleView(id: ID!, data: ArticleViewInput!): ArticleViewEntityResponse
+  deleteArticleView(id: ID!): ArticleViewEntityResponse
   createCat(data: CatInput!): CatEntityResponse
   updateCat(id: ID!, data: CatInput!): CatEntityResponse
   deleteCat(id: ID!): CatEntityResponse
@@ -1066,58 +1304,71 @@ type Mutation {
   createImage(data: ImageInput!): ImageEntityResponse
   updateImage(id: ID!, data: ImageInput!): ImageEntityResponse
   deleteImage(id: ID!): ImageEntityResponse
-  upload(refId: ID, ref: String, field: String, info: FileInfoInput, file: Upload!): UploadFileEntityResponse!
-  multipleUpload(refId: ID, ref: String, field: String, files: [Upload]!): [UploadFileEntityResponse]!
+  upload(
+    refId: ID
+    ref: String
+    field: String
+    info: FileInfoInput
+    file: Upload!
+  ): UploadFileEntityResponse!
+  multipleUpload(
+    refId: ID
+    ref: String
+    field: String
+    files: [Upload]!
+  ): [UploadFileEntityResponse]!
   updateFileInfo(id: ID!, info: FileInfoInput): UploadFileEntityResponse!
   removeFile(id: ID!): UploadFileEntityResponse
-  """
-  Create a new role
-  """
-  createUsersPermissionsRole(data: UsersPermissionsRoleInput!): UsersPermissionsCreateRolePayload
-  """
-  Update an existing role
-  """
-  updateUsersPermissionsRole(id: ID!, data: UsersPermissionsRoleInput!): UsersPermissionsUpdateRolePayload
-  """
-  Delete an existing role
-  """
+
+  # Create a new role
+  createUsersPermissionsRole(
+    data: UsersPermissionsRoleInput!
+  ): UsersPermissionsCreateRolePayload
+
+  # Update an existing role
+  updateUsersPermissionsRole(
+    id: ID!
+    data: UsersPermissionsRoleInput!
+  ): UsersPermissionsUpdateRolePayload
+
+  # Delete an existing role
   deleteUsersPermissionsRole(id: ID!): UsersPermissionsDeleteRolePayload
-  """
-  Create a new user
-  """
-  createUsersPermissionsUser(data: UsersPermissionsUserInput!): UsersPermissionsUserEntityResponse!
-  """
-  Update an existing user
-  """
-  updateUsersPermissionsUser(id: ID!, data: UsersPermissionsUserInput!): UsersPermissionsUserEntityResponse!
-  """
-  Delete an existing user
-  """
+
+  # Create a new user
+  createUsersPermissionsUser(
+    data: UsersPermissionsUserInput!
+  ): UsersPermissionsUserEntityResponse!
+
+  # Update an existing user
+  updateUsersPermissionsUser(
+    id: ID!
+    data: UsersPermissionsUserInput!
+  ): UsersPermissionsUserEntityResponse!
+
+  # Delete an existing user
   deleteUsersPermissionsUser(id: ID!): UsersPermissionsUserEntityResponse!
   login(input: UsersPermissionsLoginInput!): UsersPermissionsLoginPayload!
-  """
-  Register a user
-  """
+
+  # Register a user
   register(input: UsersPermissionsRegisterInput!): UsersPermissionsLoginPayload!
-  """
-  Request a reset password token
-  """
+
+  # Request a reset password token
   forgotPassword(email: String!): UsersPermissionsPasswordPayload
-  """
-  Reset user password. Confirm with a code (resetToken from forgotPassword)
-  """
-  resetPassword(password: String!, passwordConfirmation: String!, code: String!): UsersPermissionsLoginPayload
-  """
-  Change user password. Confirm with the current password.
-  """
+
+  # Reset user password. Confirm with a code (resetToken from forgotPassword)
+  resetPassword(
+    password: String!
+    passwordConfirmation: String!
+    code: String!
+  ): UsersPermissionsLoginPayload
+
+  # Change user password. Confirm with the current password.
   changePassword(
     currentPassword: String!
     password: String!
     passwordConfirmation: String!
   ): UsersPermissionsLoginPayload
-  """
-  Confirm an email users email address
-  """
+
+  # Confirm an email users email address
   emailConfirmation(confirmation: String!): UsersPermissionsLoginPayload
 }
-
