@@ -1,8 +1,35 @@
 use crate::{
-    queries::cat::{CatFiltersInput, CatTagFiltersInput},
-    queries::commons::{BooleanFilterInput, StringFilterInput},
+    queries::{
+        cat::{CatFiltersInput, CatTagFiltersInput},
+        commons::{BooleanFilterInput, DateTime, StringFilterInput},
+    },
     Age, Color, PaginationArg, Sex,
 };
+
+#[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.BetweenDateTime"
+)]
+pub struct BetweenDateTime {
+    pub date_from: Option<String>,
+    pub date_to: Option<String>,
+}
+
+impl From<BetweenDateTime> for Vec<Option<DateTime>> {
+    fn from(value: BetweenDateTime) -> Self {
+        let BetweenDateTime { date_from, date_to } = value;
+        vec![date_from.map(DateTime), date_to.map(DateTime)]
+    }
+}
+//  impl Default for BetweenDateTime {
+//      fn default() -> Self {
+//          BetweenDateTime {
+//              datetimes: vec![None, None],
+//          }
+//      }
+//  }
 
 #[derive(Debug, Default)]
 #[cfg_attr(
@@ -87,6 +114,7 @@ pub struct CatFilter {
     sex: Option<Filter<Sex>>,
     age: Option<Filter<Age>>,
     color: Option<Filter<Color>>,
+    is_dead: Option<bool>,
     castrated: Option<bool>,
     tags: Option<Vec<String>>,
     name: Option<Filter<String>>,
@@ -99,6 +127,7 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
             tags,
             castrated,
             color,
+            is_dead,
             age,
             sex,
         } = value;
@@ -127,6 +156,10 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
             }),
             castrated: Some(BooleanFilterInput {
                 eq: castrated,
+                ..BooleanFilterInput::default()
+            }),
+            is_dead: Some(BooleanFilterInput {
+                eq: is_dead,
                 ..BooleanFilterInput::default()
             }),
             ..CatFiltersInput::default()
