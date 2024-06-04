@@ -23,13 +23,6 @@ impl From<BetweenDateTime> for Vec<Option<DateTime>> {
         vec![date_from.map(DateTime), date_to.map(DateTime)]
     }
 }
-//  impl Default for BetweenDateTime {
-//      fn default() -> Self {
-//          BetweenDateTime {
-//              datetimes: vec![None, None],
-//          }
-//      }
-//  }
 
 #[derive(Debug, Default)]
 #[cfg_attr(

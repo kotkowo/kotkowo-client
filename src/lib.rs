@@ -12,12 +12,9 @@ pub use queries::commons::PaginationArg;
 
 use queries::{cat::CatFiltersInput, commons::DateTime};
 use snafu::{OptionExt, ResultExt};
-use std::{borrow::Borrow, env};
+use std::env;
 
-use crate::{
-    models::AdoptedCat,
-    queries::{cat::ListCatVariables, commons::BooleanFilterInput},
-};
+use crate::{models::AdoptedCat, queries::commons::BooleanFilterInput};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -197,7 +194,6 @@ pub fn list_adopted_cat(
     };
 
     let between: Option<Vec<Option<DateTime>>> = between_dates.map(|dates| dates.into());
-    println!("{:?}", between);
     let vars = AdoptedCatQueryVariables {
         cat: filters,
         pagination,
@@ -234,7 +230,6 @@ pub fn list_adopted_cat(
         .adopted_cats
         .context(MissingAttributeSnafu {})?;
 
-    println!("{:?}", source_cats);
     let meta = source_cats.meta;
 
     let adopted_cats: Result<Vec<AdoptedCat>, Error> = source_cats
@@ -354,9 +349,7 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        get_announcement_article, list_adopted_cat, list_announcement, CatFilter, Options,
-    };
+    use crate::{get_announcement_article, list_adopted_cat, list_announcement, Options};
 
     #[test]
     fn list_announcement_test() {
@@ -371,7 +364,6 @@ mod tests {
     #[test]
     fn list_adopted_cat_test() {
         let paged = list_adopted_cat(Options::default(), None);
-        println!("{:?}", paged);
         assert!(paged.is_ok());
     }
 }
