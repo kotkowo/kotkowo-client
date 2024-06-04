@@ -13,8 +13,6 @@ use queries::cat::CatFiltersInput;
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
-use crate::queries::commons::IdfilterInput;
-
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -25,12 +23,8 @@ pub fn get_article_view_count(article_id: String) -> Result<i32, Error> {
 
     let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
     let id: cynic::Id = article_id.into();
-    let filter_id: IdfilterInput = IdfilterInput {
-        eq: Some(&id),
-        ..Default::default()
-    };
     let vars = ArticleViewCountQueryVariables {
-        article_id: Some(filter_id),
+        article_id: Some(&id),
     };
     let vars_str = serde_json::to_string(&vars);
     let operation = ArticleViewCountQuery::build(vars);
@@ -318,5 +312,6 @@ mod tests {
     fn get_article_view_count_test() {
         let count_first = get_article_view_count("1".to_string());
         assert!(count_first.is_ok());
+        println!("{:?}", count_first.ok());
     }
 }

@@ -5,12 +5,13 @@ use crate::schema;
 
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ArticleViewCountQueryVariables<'a> {
-    pub article_id: Option<IdfilterInput<'a>>,
+    pub article_id: Option<&'a cynic::Id>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(graphql_type = "Query", variables = "ArticleViewCountQueryVariables")]
 pub struct ArticleViewCountQuery {
+    #[arguments(filters: { article: { id: { eq: $article_id } } })]
     pub article_views: Option<ArticleViewEntityResponseCollection>,
 }
 
