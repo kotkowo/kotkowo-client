@@ -6,12 +6,18 @@ mod schema;
 
 pub use errors::*;
 pub use models::{Age, Announcement, Article, Cat, Color, Paged, Sex};
+use options::BetweenDateTime;
 pub use options::{AnnouncementFilter, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
-use queries::cat::CatFiltersInput;
+use queries::{cat::CatFiltersInput, commons::DateTime};
 use snafu::{OptionExt, ResultExt};
-use std::env;
+use std::{borrow::Borrow, env};
+
+use crate::{
+    models::AdoptedCat,
+    queries::{cat::ListCatVariables, commons::BooleanFilterInput},
+};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -164,6 +170,101 @@ pub fn get_cat(id: String) -> Result<Cat, Error> {
     Ok(cat)
 }
 
+pub fn list_adopted_cat(
+    options: Options<CatFilter>,
+    between_dates: Option<BetweenDateTime>,
+) -> Result<Paged<AdoptedCat>, Error> {
+    use crate::queries::adopted_cat::AdoptedCatQueryVariables;
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+    use queries::adopted_cat::AdoptedCatQuery;
+
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+
+    let filters: CatFiltersInput = options
+        .filter
+        .map_or_else(CatFiltersInput::default, |filter| CatFiltersInput {
+            is_dead: Some(BooleanFilterInput {
+                eq: Some(false),
+                ..BooleanFilterInput::default()
+            }),
+            ..filter.into()
+        });
+    let pagination = options.pagination.unwrap_or_default();
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+
+    let between: Option<Vec<Option<DateTime>>> = between_dates.map(|dates| dates.into());
+    println!("{:?}", between);
+    let vars = AdoptedCatQueryVariables {
+        cat: filters,
+        pagination,
+        sort,
+        between,
+    };
+
+    // stored in case needed for error message
+    let vars_str = serde_json::to_string(&vars);
+
+    let operation = AdoptedCatQuery::build(vars);
+    let query = operation.query.clone();
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_cats = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .adopted_cats
+        .context(MissingAttributeSnafu {})?;
+
+    println!("{:?}", source_cats);
+    let meta = source_cats.meta;
+
+    let adopted_cats: Result<Vec<AdoptedCat>, Error> = source_cats
+        .data
+        .into_iter()
+        .map(|cat_entity| {
+            let id = cat_entity.id.map(|id| id.into_inner());
+            cat_entity
+                .attributes
+                .context(MissingAttributeSnafu {})
+                .and_then(|adopted_cat| {
+                    let AdoptedCat {
+                        id: _,
+                        adoption_date,
+                        cat,
+                    } = adopted_cat.try_into()?;
+                    Ok(AdoptedCat {
+                        id,
+                        cat,
+                        adoption_date,
+                    })
+                })
+        })
+        .collect();
+
+    let page: Paged<AdoptedCat> = Paged::new(meta.pagination, adopted_cats?);
+
+    Ok(page)
+}
+
 pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
     use crate::queries::cat::ListCatVariables;
     use cynic::http::ReqwestBlockingExt;
@@ -253,7 +354,9 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_announcement_article, list_announcement, Options};
+    use crate::{
+        get_announcement_article, list_adopted_cat, list_announcement, CatFilter, Options,
+    };
 
     #[test]
     fn list_announcement_test() {
@@ -264,5 +367,11 @@ mod tests {
     fn get_announcement_article_test() {
         let article = get_announcement_article("1".to_string());
         assert!(article.is_ok());
+    }
+    #[test]
+    fn list_adopted_cat_test() {
+        let paged = list_adopted_cat(Options::default(), None);
+        println!("{:?}", paged);
+        assert!(paged.is_ok());
     }
 }
