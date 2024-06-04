@@ -1,5 +1,7 @@
 use crate::errors::{Error, MissingAttributeSnafu};
+use crate::queries::commons::DateTime;
 use crate::queries::{
+    adopted_cat::AdoptedCat as SourceAdoptedCat,
     announcement::Announcement as SourceAnnouncement,
     announcement_article::{
         Announcement as SourceArticleAnnouncement, Article as SourceArticle, ArticleEntity,
@@ -49,6 +51,36 @@ impl TryFrom<UploadFileEntityResponse> for Image {
     }
 }
 
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.AdoptedCat"
+)]
+pub struct AdoptedCat {
+    pub id: Option<String>,
+    pub adoption_date: String,
+    pub cat: Cat,
+}
+impl TryFrom<SourceAdoptedCat> for AdoptedCat {
+    type Error = Error;
+    fn try_from(value: SourceAdoptedCat) -> Result<AdoptedCat, Error> {
+        let SourceAdoptedCat { adoption_date, cat } = value;
+        let DateTime(inner_datetime_string) = adoption_date;
+        let inner_cat: Cat = cat
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?
+            .into();
+        Ok(AdoptedCat {
+            id: None,
+            adoption_date: inner_datetime_string,
+            cat: inner_cat,
+        })
+    }
+}
 #[derive(Debug)]
 #[cfg_attr(
     feature = "elixir_support",
