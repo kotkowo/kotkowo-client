@@ -13,8 +13,57 @@ use queries::cat::CatFiltersInput;
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
+use crate::queries::commons::IdfilterInput;
+
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+pub fn get_article_view_count(article_id: String) -> Result<i32, Error> {
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+    use queries::article_view_count::{ArticleViewCountQuery, ArticleViewCountQueryVariables};
+
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+    let id: cynic::Id = article_id.into();
+    let filter_id: IdfilterInput = IdfilterInput {
+        eq: Some(&id),
+        ..Default::default()
+    };
+    let vars = ArticleViewCountQueryVariables {
+        article_id: Some(filter_id),
+    };
+    let vars_str = serde_json::to_string(&vars);
+    let operation = ArticleViewCountQuery::build(vars);
+    let query = operation.query.clone();
+
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+    let article_views = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .article_views;
+
+    Ok(article_views
+        .context(MissingAttributeSnafu {})?
+        .meta
+        .pagination
+        .total)
+}
 pub fn get_announcement_article(announcement_id: String) -> Result<Article, Error> {
     use cynic::http::ReqwestBlockingExt;
     use cynic::QueryBuilder;
@@ -253,7 +302,7 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_announcement_article, list_announcement, Options};
+    use crate::{get_announcement_article, get_article_view_count, list_announcement, Options};
 
     #[test]
     fn list_announcement_test() {
@@ -264,5 +313,10 @@ mod tests {
     fn get_announcement_article_test() {
         let article = get_announcement_article("1".to_string());
         assert!(article.is_ok());
+    }
+    #[test]
+    fn get_article_view_count_test() {
+        let count_first = get_article_view_count("1".to_string());
+        assert!(count_first.is_ok());
     }
 }
