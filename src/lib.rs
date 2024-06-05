@@ -5,16 +5,15 @@ mod queries;
 mod schema;
 
 pub use errors::*;
-pub use models::{Age, Announcement, Article, Cat, Color, Paged, Sex};
-use options::BetweenDateTime;
-pub use options::{AnnouncementFilter, CatFilter, Options};
+pub use models::{AdoptedCat, Age, Announcement, Article, Cat, Color, Paged, Sex};
+pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
 use queries::{cat::CatFiltersInput, commons::DateTime};
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
-use crate::{models::AdoptedCat, queries::commons::BooleanFilterInput};
+use crate::queries::commons::BooleanFilterInput;
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
