@@ -355,7 +355,7 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_announcement_article, list_adopted_cat, list_announcement, Options};
+    use crate::{get_announcement_article, list_adopted_cat, list_announcement, list_cat, Options};
 
     #[test]
     fn list_announcement_test() {
@@ -371,5 +371,11 @@ mod tests {
     fn list_adopted_cat_test() {
         let paged = list_adopted_cat(Options::default(), None);
         assert!(paged.is_ok());
+    }
+    #[test]
+    fn list_cat_test() {
+        let opts = Options::default();
+        let paged = list_cat(opts);
+        assert!(paged.is_ok())
     }
 }

@@ -136,6 +136,9 @@ impl std::fmt::Display for Sex {
 }
 #[derive(cynic::InputObject, Debug, Default)]
 pub struct CatFiltersInput<'a> {
+    #[cynic(skip_serializing_if = "Option::is_none", rename = "adopted_cat")]
+    pub adopted_cat: Option<AdoptedCatFiltersInput<'a>>,
+
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub id: Option<IdfilterInput<'a>>,
 
@@ -225,4 +228,26 @@ pub struct CatTagFiltersInput<'a> {
 
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub not: Option<Box<CatTagFiltersInput<'a>>>,
+}
+#[derive(cynic::InputObject, Debug, Default)]
+pub struct AdoptedCatFiltersInput<'a> {
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub id: Option<IdfilterInput<'a>>,
+    #[cynic(rename = "adoption_date")]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub adoption_date: Option<DateTimeFilterInput>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub cat: Option<Box<CatFiltersInput<'a>>>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTimeFilterInput>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTimeFilterInput>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub published_at: Option<DateTimeFilterInput>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub and: Option<Vec<Option<AdoptedCatFiltersInput<'a>>>>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub or: Option<Vec<Option<AdoptedCatFiltersInput<'a>>>>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub not: Option<Box<AdoptedCatFiltersInput<'a>>>,
 }
