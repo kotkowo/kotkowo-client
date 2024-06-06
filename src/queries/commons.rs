@@ -158,7 +158,7 @@ pub struct IdfilterInput<'a> {
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub not_null: Option<bool>,
 
-    #[cynic(rename = "in")]
+    #[cynic(rename = "in", skip_serializing_if = "Option::is_none")]
     pub in_: Option<Vec<Option<&'a cynic::Id>>>,
 
     #[cynic(skip_serializing_if = "Option::is_none")]
