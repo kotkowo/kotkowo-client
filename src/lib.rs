@@ -177,15 +177,22 @@ pub fn list_adopted_cat(
 
     let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
 
-    let filters: CatFiltersInput = options
-        .filter
-        .map_or_else(CatFiltersInput::default, |filter| CatFiltersInput {
+    let filters: CatFiltersInput = options.filter.map_or_else(
+        || CatFiltersInput {
+            is_dead: Some(BooleanFilterInput {
+                eq: Some(false),
+                ..BooleanFilterInput::default()
+            }),
+            ..CatFiltersInput::default()
+        },
+        |filter| CatFiltersInput {
             is_dead: Some(BooleanFilterInput {
                 eq: Some(false),
                 ..BooleanFilterInput::default()
             }),
             ..filter.into()
-        });
+        },
+    );
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
         empty if empty.is_empty() => None,
