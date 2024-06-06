@@ -4,9 +4,6 @@ scalar JSON
 # A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 scalar DateTime
 
-# A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
-scalar Date
-
 # The `Upload` scalar type represents a file upload.
 scalar Upload
 
@@ -149,31 +146,6 @@ input FloatFilterInput {
   in: [Float]
   notIn: [Float]
   between: [Float]
-}
-
-input DateFilterInput {
-  and: [Date]
-  or: [Date]
-  not: DateFilterInput
-  eq: Date
-  eqi: Date
-  ne: Date
-  nei: Date
-  startsWith: Date
-  endsWith: Date
-  contains: Date
-  notContains: Date
-  containsi: Date
-  notContainsi: Date
-  gt: Date
-  gte: Date
-  lt: Date
-  lte: Date
-  null: Boolean
-  notNull: Boolean
-  in: [Date]
-  notIn: [Date]
-  between: [Date]
 }
 
 input DateTimeFilterInput {
@@ -832,31 +804,25 @@ type ArticleEntityResponseCollection {
 
 input ArticleViewFiltersInput {
   id: IDFilterInput
-  client_adress: StringFilterInput
-  view_date: DateFilterInput
+  client_address: StringFilterInput
   article: ArticleFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
-  publishedAt: DateTimeFilterInput
   and: [ArticleViewFiltersInput]
   or: [ArticleViewFiltersInput]
   not: ArticleViewFiltersInput
 }
 
 input ArticleViewInput {
-  client_adress: String
-  view_date: Date
+  client_address: String
   article: ID
-  publishedAt: DateTime
 }
 
 type ArticleView {
-  client_adress: String!
-  view_date: Date!
+  client_address: String!
   article: ArticleEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
-  publishedAt: DateTime
 }
 
 type ArticleViewEntity {
@@ -918,6 +884,7 @@ input CatFiltersInput {
   cat_tags: CatTagFiltersInput
   color: StringFilterInput
   is_dead: BooleanFilterInput
+  adopted_cat: AdoptedCatFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -941,6 +908,7 @@ input CatInput {
   cat_tags: [ID]
   color: ENUM_CAT_COLOR
   is_dead: Boolean
+  adopted_cat: ID
   publishedAt: DateTime
 }
 
@@ -967,6 +935,7 @@ type Cat {
   ): CatTagRelationResponseCollection
   color: ENUM_CAT_COLOR!
   is_dead: Boolean!
+  adopted_cat: AdoptedCatEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -1220,7 +1189,6 @@ type Query {
     filters: ArticleViewFiltersInput
     pagination: PaginationArg = {}
     sort: [String] = []
-    publicationState: PublicationState = LIVE
   ): ArticleViewEntityResponseCollection
   cat(id: ID): CatEntityResponse
   cats(
