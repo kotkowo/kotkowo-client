@@ -248,9 +248,7 @@ pub fn list_adopted_cat(
                 .context(MissingAttributeSnafu {})
                 .and_then(|adopted_cat| {
                     let AdoptedCat {
-                        id: _,
-                        adoption_date,
-                        cat,
+                        adoption_date, cat, ..
                     } = adopted_cat.try_into()?;
                     Ok(AdoptedCat {
                         id,
