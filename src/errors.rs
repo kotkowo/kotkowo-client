@@ -9,6 +9,9 @@ pub enum Error {
     #[snafu(display("Missing or none attribute"))]
     MissingAttribute { backtrace: Backtrace },
 
+    #[snafu(display("Not found: {}", key))]
+    NotFound { key: String },
+
     #[snafu(display("Request failure"))]
     CynicRequestError {
         source: CynicReqwestError,
@@ -41,6 +44,9 @@ pub enum Error {
 impl rustler::Encoder for Error {
     fn encode<'a>(&self, env: rustler::Env<'a>) -> rustler::Term<'a> {
         let msg: String = match self {
+            Error::NotFound { key } => {
+                format!("Couldn't find match for {}", key)
+            }
             Error::MissingAttribute { backtrace } => {
                 format!("MissingAttribute:\n Backtrace:\n {}", backtrace)
             }
