@@ -13,7 +13,7 @@ use queries::{cat::CatFiltersInput, commons::DateTime};
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
-use crate::queries::commons::BooleanFilterInput;
+use crate::queries::commons::{BooleanFilterInput, StringFilterInput};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -264,6 +264,82 @@ pub fn list_adopted_cat(
     Ok(page)
 }
 
+pub fn get_cat_by_slug(slug: String) -> Result<Cat, Error> {
+    use crate::queries::cat::ListCatVariables;
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+    use queries::cat::ListCat;
+
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+    let key = serde_json::to_string(&slug);
+
+    let filters: CatFiltersInput = CatFiltersInput {
+        slug: Some(StringFilterInput {
+            eq: Some(slug),
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+
+    let pagination = PaginationArg::default();
+
+    let vars = ListCatVariables {
+        filters,
+        pagination,
+        sort: None,
+    };
+
+    // stored in case needed for error message
+    let vars_str = serde_json::to_string(&vars);
+
+    let operation = ListCat::build(vars);
+    let query = operation.query.clone();
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_cats = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .cats
+        .context(MissingAttributeSnafu {})?;
+
+    let cats: Result<Vec<Cat>, Error> = source_cats
+        .data
+        .into_iter()
+        .map(|cat_entity| {
+            let id = cat_entity.id.map(|id| id.into_inner());
+            cat_entity
+                .attributes
+                .context(MissingAttributeSnafu {})
+                .map(|cat| Cat { id, ..cat.into() })
+        })
+        .collect();
+
+    let cats: Vec<Cat> = cats?;
+    assert!(cats.len() < 2);
+    let cat: Cat = cats
+        .into_iter()
+        .next()
+        .context(NotFoundSnafu { key: key.unwrap() })?;
+
+    Ok(cat)
+}
+
 pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
     use crate::queries::cat::ListCatVariables;
     use cynic::http::ReqwestBlockingExt;
@@ -353,7 +429,10 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_announcement_article, list_adopted_cat, list_announcement, list_cat, Options};
+    use crate::{
+        get_announcement_article, get_cat, get_cat_by_slug, list_adopted_cat, list_announcement,
+        list_cat, Options,
+    };
 
     #[test]
     fn list_announcement_test() {
@@ -375,5 +454,17 @@ mod tests {
         let opts = Options::default();
         let paged = list_cat(opts);
         assert!(paged.is_ok())
+    }
+    #[test]
+    fn get_cat_test() {
+        let slug = "1";
+        let cat = get_cat(slug.to_string());
+        assert!(cat.is_ok());
+    }
+    #[test]
+    fn get_cat_by_slug_test() {
+        let slug = "luna";
+        let cat = get_cat_by_slug(slug.to_string());
+        assert!(cat.is_ok())
     }
 }
