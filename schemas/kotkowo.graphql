@@ -1189,7 +1189,7 @@ input LostCatFiltersInput {
   during_medical_treatment: BooleanFilterInput
   disappearance_datetime: DateTimeFilterInput
   cat: CatFiltersInput
-  disappearance_circumstances: BooleanFilterInput
+  disappearance_circumstances: StringFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -1204,7 +1204,7 @@ input LostCatInput {
   during_medical_treatment: Boolean
   disappearance_datetime: DateTime
   cat: ID
-  disappearance_circumstances: Boolean
+  disappearance_circumstances: String
   publishedAt: DateTime
 }
 
@@ -1214,7 +1214,7 @@ type LostCat {
   during_medical_treatment: Boolean!
   disappearance_datetime: DateTime!
   cat: CatEntityResponse
-  disappearance_circumstances: Boolean!
+  disappearance_circumstances: String!
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
