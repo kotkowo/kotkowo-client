@@ -1,7 +1,6 @@
 use crate::errors::{Error, MissingAttributeSnafu};
-use crate::queries::commons::{
-    ContactInformation, ContactInformationRelationResponseCollection, DateTime,
-};
+use crate::queries::commons::{ContactInformation, DateTime};
+use crate::queries::looking_for_home::LookingForAdoptionCat;
 use crate::queries::{
     adopted_cat::AdoptedCat as SourceAdoptedCat,
     announcement::Announcement as SourceAnnouncement,
@@ -49,6 +48,43 @@ impl TryFrom<UploadFileEntityResponse> for Image {
             width: attributes.width,
             height: attributes.height,
             name: attributes.name,
+        })
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.LookingForHomeCat"
+)]
+pub struct LookingForHomeCat {
+    pub id: Option<String>,
+    pub caretaker: Option<ContactInformation>,
+    pub cat: Cat,
+}
+
+impl TryFrom<LookingForAdoptionCat> for LookingForHomeCat {
+    type Error = Error;
+    fn try_from(value: LookingForAdoptionCat) -> Result<LookingForHomeCat, Error> {
+        let LookingForAdoptionCat { caretaker, cat } = value;
+        let inner_cat: Cat = cat
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?
+            .into();
+
+        let caretaker: Option<ContactInformation> = caretaker
+            .context(MissingAttributeSnafu {})?
+            .data
+            .and_then(|caretaker_entity| caretaker_entity.attributes);
+
+        Ok(LookingForHomeCat {
+            id: None,
+            cat: inner_cat,
+            caretaker,
         })
     }
 }

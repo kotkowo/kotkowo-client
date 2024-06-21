@@ -339,7 +339,10 @@ pub struct ContactInformationFiltersInput<'a> {
 pub struct ContactInformationRelationResponseCollection {
     pub data: Vec<ContactInformationEntity>,
 }
-
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ContactInformationEntityResponse {
+    pub data: Option<ContactInformationEntity>,
+}
 #[derive(cynic::QueryFragment, Debug)]
 pub struct ContactInformationEntity {
     pub attributes: Option<ContactInformation>,

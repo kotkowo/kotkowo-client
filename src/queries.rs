@@ -4,3 +4,4 @@ pub mod announcement_article;
 pub mod cat;
 pub mod cat_commons;
 pub mod commons;
+pub mod looking_for_home;
