@@ -319,3 +319,43 @@ pub struct BooleanFilterInput {
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub between: Option<Vec<Option<bool>>>,
 }
+#[derive(cynic::InputObject, Debug)]
+pub struct ContactInformationFiltersInput<'a> {
+    pub id: Option<IdfilterInput<'a>>,
+    #[cynic(rename = "phone_number")]
+    pub phone_number: Option<StringFilterInput>,
+    #[cynic(rename = "first_name")]
+    pub first_name: Option<StringFilterInput>,
+    #[cynic(rename = "last_name")]
+    pub last_name: Option<StringFilterInput>,
+    pub created_at: Option<DateTimeFilterInput>,
+    pub updated_at: Option<DateTimeFilterInput>,
+    pub published_at: Option<DateTimeFilterInput>,
+    pub and: Option<Vec<Option<ContactInformationFiltersInput<'a>>>>,
+    pub or: Option<Vec<Option<ContactInformationFiltersInput<'a>>>>,
+    pub not: Option<Box<ContactInformationFiltersInput<'a>>>,
+}
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ContactInformationRelationResponseCollection {
+    pub data: Vec<ContactInformationEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct ContactInformationEntity {
+    pub attributes: Option<ContactInformation>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.ContactInformation"
+)]
+pub struct ContactInformation {
+    #[cynic(rename = "first_name")]
+    pub first_name: String,
+    #[cynic(rename = "last_name")]
+    pub last_name: String,
+    #[cynic(rename = "phone_number")]
+    pub phone_number: String,
+}

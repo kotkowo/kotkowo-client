@@ -1,5 +1,7 @@
 use crate::errors::{Error, MissingAttributeSnafu};
-use crate::queries::commons::DateTime;
+use crate::queries::commons::{
+    ContactInformation, ContactInformationRelationResponseCollection, DateTime,
+};
 use crate::queries::{
     adopted_cat::AdoptedCat as SourceAdoptedCat,
     announcement::Announcement as SourceAnnouncement,
@@ -156,7 +158,6 @@ impl From<SourceAnnouncement> for Announcement {
         }
     }
 }
-
 #[derive(Debug)]
 #[cfg_attr(
     feature = "elixir_support",
@@ -165,19 +166,21 @@ impl From<SourceAnnouncement> for Announcement {
 )]
 pub struct Cat {
     pub id: Option<String>,
-    pub age: Age,
-    pub name: String,
+    pub age: Option<Age>,
+    pub chip_number: Option<String>,
+    pub name: Option<String>,
     pub slug: String,
     pub sex: Sex,
-    pub medical_status: MedicalStatus,
-    pub fiv_felv: FivFelv,
-    pub healthy: bool,
+    pub medical_status: Option<MedicalStatus>,
+    pub fiv_felv: Option<FivFelv>,
+    pub healthy: Option<bool>,
     pub tags: Vec<String>,
-    pub description_heading: String,
-    pub description: String,
+    pub description_heading: Option<String>,
+    pub description: Option<String>,
     pub is_dead: bool,
-    pub castrated: bool,
+    pub castrated: Option<bool>,
     pub color: Color,
+    pub contact_informations: Vec<ContactInformation>,
     pub images: Vec<Image>,
 }
 
@@ -185,6 +188,8 @@ impl From<SourceCat> for Cat {
     fn from(value: SourceCat) -> Self {
         let SourceCat {
             name,
+            chip_number,
+            contact_informations,
             slug,
             sex,
             medical_status,
@@ -199,6 +204,15 @@ impl From<SourceCat> for Cat {
             age,
             ..
         } = value;
+
+        let contact_informations: Vec<ContactInformation> =
+            contact_informations.map_or_else(Vec::new, |contact_collection| {
+                contact_collection
+                    .data
+                    .into_iter()
+                    .filter_map(|contact_entity| contact_entity.attributes)
+                    .collect()
+            });
 
         let tags: Vec<String> = cat_tags.map_or_else(Vec::new, |tag_collection| {
             tag_collection
@@ -248,6 +262,8 @@ impl From<SourceCat> for Cat {
         Cat {
             id: None,
             age,
+            contact_informations,
+            chip_number,
             name,
             slug,
             sex,

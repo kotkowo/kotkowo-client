@@ -20,30 +20,33 @@ pub struct CatEntity {
 
 #[derive(cynic::QueryFragment, Debug)]
 pub struct Cat {
-    pub name: String,
-    pub slug: String,
-    pub sex: Sex,
-    pub age: Age,
-    #[cynic(rename = "medical_status")]
-    pub medical_status: MedicalStatus,
-    #[cynic(rename = "fiv_felv")]
-    pub fiv_felv: FivFelv,
-    pub healthy: bool,
+    pub age: Option<Age>,
+    pub castrated: Option<bool>,
     #[cynic(rename = "cat_tags")]
     pub cat_tags: Option<CatTagRelationResponseCollection>,
-    #[cynic(rename = "description_heading")]
-    pub description_heading: String,
-    pub description: String,
-    #[cynic(rename = "is_dead")]
-    pub is_dead: bool,
-    pub castrated: bool,
+    #[cynic(rename = "chip_number")]
+    pub chip_number: Option<String>,
     pub color: Color,
+    #[cynic(rename = "contact_informations")]
+    pub contact_informations: Option<ContactInformationRelationResponseCollection>,
     pub created_at: Option<DateTime>,
     pub published_at: Option<DateTime>,
     pub updated_at: Option<DateTime>,
+    #[cynic(rename = "is_dead")]
+    pub is_dead: bool,
+    #[cynic(rename = "medical_status")]
+    pub medical_status: Option<MedicalStatus>,
+    pub name: Option<String>,
+    pub sex: Sex,
+    pub slug: String,
+    pub healthy: Option<bool>,
+    #[cynic(rename = "fiv_felv")]
+    pub fiv_felv: Option<FivFelv>,
+    #[cynic(rename = "description_heading")]
+    pub description_heading: Option<String>,
+    pub description: Option<String>,
     pub images: Option<ImageRelationResponseCollection>,
 }
-
 #[derive(cynic::QueryFragment, Debug)]
 pub struct CatTagRelationResponseCollection {
     pub data: Vec<CatTagEntity>,
@@ -134,74 +137,60 @@ impl std::fmt::Display for Sex {
         write!(f, "{self:?}")
     }
 }
+
 #[derive(cynic::InputObject, Debug, Default)]
 pub struct CatFiltersInput<'a> {
-    #[cynic(skip_serializing_if = "Option::is_none", rename = "adopted_cat")]
-    pub adopted_cat: Option<AdoptedCatFiltersInput<'a>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub id: Option<IdfilterInput<'a>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub name: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub slug: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub images: Option<ImageFiltersInput<'a>>,
-
-    #[cynic(
-        rename = "description_heading",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "description_heading")]
     pub description_heading: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub description: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub sex: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub age: Option<StringFilterInput>,
-
-    #[cynic(rename = "medical_status", skip_serializing_if = "Option::is_none")]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "medical_status")]
     pub medical_status: Option<StringFilterInput>,
-
-    #[cynic(rename = "fiv_felv", skip_serializing_if = "Option::is_none")]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "fiv_felv")]
     pub fiv_felv: Option<StringFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub castrated: Option<BooleanFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub healthy: Option<BooleanFilterInput>,
-
-    #[cynic(skip_serializing_if = "Option::is_none", rename = "cat_tags")]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "cat_tags")]
     pub cat_tags: Option<CatTagFiltersInput<'a>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub color: Option<StringFilterInput>,
-
-    #[cynic(rename = "is_dead", skip_serializing_if = "Option::is_none")]
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "is_dead")]
     pub is_dead: Option<BooleanFilterInput>,
-
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "contact_informations")]
+    pub contact_informations: Option<ContactInformationFiltersInput<'a>>,
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    #[cynic(rename = "chip_number")]
+    pub chip_number: Option<StringFilterInput>,
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTimeFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<DateTimeFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub published_at: Option<DateTimeFilterInput>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub and: Option<Vec<Option<CatFiltersInput<'a>>>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub or: Option<Vec<Option<CatFiltersInput<'a>>>>,
-
     #[cynic(skip_serializing_if = "Option::is_none")]
     pub not: Option<Box<CatFiltersInput<'a>>>,
 }

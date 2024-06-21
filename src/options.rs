@@ -106,9 +106,9 @@ pub struct AnnouncementFilter {}
 )]
 pub struct CatFilter {
     sex: Option<Filter<Sex>>,
+    chip_number: Option<Filter<String>>,
     age: Option<Filter<Age>>,
     color: Option<Filter<Color>>,
-    include_adopted: Option<bool>,
     is_dead: Option<bool>,
     castrated: Option<bool>,
     tags: Option<Vec<String>>,
@@ -121,8 +121,8 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
             name,
             tags,
             castrated,
+            chip_number,
             color,
-            include_adopted,
             is_dead,
             age,
             sex,
@@ -141,22 +141,12 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
                 .collect()
         });
 
-        let include_adopted = match include_adopted {
-            Some(true) => Some(AdoptedCatFiltersInput::default()),
-            _ => Some(AdoptedCatFiltersInput {
-                id: Some(IdfilterInput {
-                    null: Some(true),
-                    ..IdfilterInput::default()
-                }),
-                ..AdoptedCatFiltersInput::default()
-            }),
-        };
-
         CatFiltersInput {
             name: name.map(|v| v.into()),
             color: color.map(|v| v.into()),
             age: age.map(|v| v.into()),
             sex: sex.map(|v| v.into()),
+            chip_number: chip_number.map(|v| v.into()),
             cat_tags: Some(CatTagFiltersInput {
                 or: tags,
                 ..CatTagFiltersInput::default()
@@ -165,7 +155,6 @@ impl<'a> From<CatFilter> for CatFiltersInput<'a> {
                 eq: castrated,
                 ..BooleanFilterInput::default()
             }),
-            adopted_cat: include_adopted,
             is_dead: Some(BooleanFilterInput {
                 eq: is_dead,
                 ..BooleanFilterInput::default()
