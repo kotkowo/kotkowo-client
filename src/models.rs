@@ -10,6 +10,8 @@ use crate::queries::{
     },
     cat::Cat as SourceCat,
     commons::{UploadFile, UploadFileEntityResponse},
+    found_cat::FoundCat as SourceFoundCat,
+    lost_cat::LostCat as SourceLostCat,
 };
 pub use crate::queries::{
     cat::{Age, Color, FivFelv, MedicalStatus, Sex},
@@ -130,6 +132,99 @@ impl TryFrom<SourceAdoptedCat> for AdoptedCat {
         })
     }
 }
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.LostCat"
+)]
+pub struct LostCat {
+    pub id: Option<String>,
+    pub disappearance_circumstances: String,
+    pub disappearance_location: String,
+    pub disappearance_datetime: String,
+    pub during_medical_treatment: bool,
+    pub special_signs: Option<String>,
+    pub cat: Cat,
+}
+
+impl TryFrom<SourceLostCat> for LostCat {
+    type Error = Error;
+    fn try_from(value: SourceLostCat) -> Result<LostCat, Error> {
+        let SourceLostCat {
+            disappearance_circumstances,
+            disappearance_datetime,
+            disappearance_location,
+            during_medical_treatment,
+            special_signs,
+            cat,
+        } = value;
+        let DateTime(disappearance_datetime) = disappearance_datetime;
+        let cat: Cat = cat
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?
+            .into();
+
+        Ok(LostCat {
+            id: None,
+            disappearance_circumstances,
+            disappearance_datetime,
+            disappearance_location,
+            during_medical_treatment,
+            special_signs,
+            cat,
+        })
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.FoundCat"
+)]
+pub struct FoundCat {
+    pub id: Option<String>,
+    pub discovery_circumstances: String,
+    pub found_location: String,
+    pub found_datetime: String,
+    pub special_signs: Option<String>,
+    pub cat: Cat,
+}
+
+impl TryFrom<SourceFoundCat> for FoundCat {
+    type Error = Error;
+    fn try_from(value: SourceFoundCat) -> Result<FoundCat, Error> {
+        let SourceFoundCat {
+            discovery_circumstances,
+            found_datetime,
+            found_location,
+            special_signs,
+            cat,
+        } = value;
+        let DateTime(found_datetime) = found_datetime;
+        let cat: Cat = cat
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?
+            .into();
+        Ok(FoundCat {
+            id: None,
+            discovery_circumstances,
+            found_datetime,
+            found_location,
+            special_signs,
+            cat,
+        })
+    }
+}
+
 #[derive(Debug)]
 #[cfg_attr(
     feature = "elixir_support",

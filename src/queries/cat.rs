@@ -9,7 +9,6 @@ pub use crate::queries::cat_commons::*;
 pub struct GetCatVariables<'a> {
     pub id: &'a cynic::Id,
 }
-
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ListCatVariables<'a> {
     pub filters: CatFiltersInput<'a>,
