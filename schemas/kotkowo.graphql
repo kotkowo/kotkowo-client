@@ -634,7 +634,7 @@ input AdoptedCatFiltersInput {
   id: IDFilterInput
   adoption_date: DateTimeFilterInput
   cat: CatFiltersInput
-  contact_informations: ContactInformationFiltersInput
+  caretaker: ContactInformationFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -646,19 +646,14 @@ input AdoptedCatFiltersInput {
 input AdoptedCatInput {
   adoption_date: DateTime
   cat: ID
-  contact_informations: [ID]
+  caretaker: ID
   publishedAt: DateTime
 }
 
 type AdoptedCat {
   adoption_date: DateTime!
   cat: CatEntityResponse
-  contact_informations(
-    filters: ContactInformationFiltersInput
-    pagination: PaginationArg = {}
-    sort: [String] = []
-    publicationState: PublicationState = LIVE
-  ): ContactInformationRelationResponseCollection
+  caretaker: ContactInformationEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
