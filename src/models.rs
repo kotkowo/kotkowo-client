@@ -98,12 +98,17 @@ impl TryFrom<LookingForAdoptionCat> for LookingForHomeCat {
 pub struct AdoptedCat {
     pub id: Option<String>,
     pub adoption_date: String,
+    pub caretaker: Option<ContactInformation>,
     pub cat: Cat,
 }
 impl TryFrom<SourceAdoptedCat> for AdoptedCat {
     type Error = Error;
     fn try_from(value: SourceAdoptedCat) -> Result<AdoptedCat, Error> {
-        let SourceAdoptedCat { adoption_date, cat } = value;
+        let SourceAdoptedCat {
+            adoption_date,
+            cat,
+            caretaker,
+        } = value;
         let DateTime(inner_datetime_string) = adoption_date;
         let inner_cat: Cat = cat
             .context(MissingAttributeSnafu {})?
@@ -112,8 +117,14 @@ impl TryFrom<SourceAdoptedCat> for AdoptedCat {
             .attributes
             .context(MissingAttributeSnafu {})?
             .into();
+        let caretaker: Option<ContactInformation> = caretaker
+            .context(MissingAttributeSnafu {})?
+            .data
+            .and_then(|caretaker_entity| caretaker_entity.attributes);
+
         Ok(AdoptedCat {
             id: None,
+            caretaker,
             adoption_date: inner_datetime_string,
             cat: inner_cat,
         })
