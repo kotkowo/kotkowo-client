@@ -38,5 +38,6 @@ pub struct AdoptedCatEntity {
 pub struct AdoptedCat {
     #[cynic(rename = "adoption_date")]
     pub adoption_date: DateTime,
+    pub caretaker: Option<ContactInformationEntityResponse>,
     pub cat: Option<CatEntityResponse>,
 }
