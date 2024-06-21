@@ -634,6 +634,7 @@ input AdoptedCatFiltersInput {
   id: IDFilterInput
   adoption_date: DateTimeFilterInput
   cat: CatFiltersInput
+  contact_informations: ContactInformationFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -645,12 +646,19 @@ input AdoptedCatFiltersInput {
 input AdoptedCatInput {
   adoption_date: DateTime
   cat: ID
+  contact_informations: [ID]
   publishedAt: DateTime
 }
 
 type AdoptedCat {
   adoption_date: DateTime!
   cat: CatEntityResponse
+  contact_informations(
+    filters: ContactInformationFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): ContactInformationRelationResponseCollection
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -884,7 +892,8 @@ input CatFiltersInput {
   cat_tags: CatTagFiltersInput
   color: StringFilterInput
   is_dead: BooleanFilterInput
-  adopted_cat: AdoptedCatFiltersInput
+  contact_informations: ContactInformationFiltersInput
+  chip_number: StringFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -908,26 +917,27 @@ input CatInput {
   cat_tags: [ID]
   color: ENUM_CAT_COLOR
   is_dead: Boolean
-  adopted_cat: ID
+  contact_informations: [ID]
+  chip_number: String
   publishedAt: DateTime
 }
 
 type Cat {
-  name: String!
+  name: String
   slug: String!
   images(
     filters: ImageFiltersInput
     pagination: PaginationArg = {}
     sort: [String] = []
   ): ImageRelationResponseCollection
-  description_heading: String!
-  description: String!
+  description_heading: String
+  description: String
   sex: ENUM_CAT_SEX!
-  age: ENUM_CAT_AGE!
-  medical_status: ENUM_CAT_MEDICAL_STATUS!
-  fiv_felv: ENUM_CAT_FIV_FELV!
-  castrated: Boolean!
-  healthy: Boolean!
+  age: ENUM_CAT_AGE
+  medical_status: ENUM_CAT_MEDICAL_STATUS
+  fiv_felv: ENUM_CAT_FIV_FELV
+  castrated: Boolean
+  healthy: Boolean
   cat_tags(
     filters: CatTagFiltersInput
     pagination: PaginationArg = {}
@@ -935,7 +945,13 @@ type Cat {
   ): CatTagRelationResponseCollection
   color: ENUM_CAT_COLOR!
   is_dead: Boolean!
-  adopted_cat: AdoptedCatEntityResponse
+  contact_informations(
+    filters: ContactInformationFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): ContactInformationRelationResponseCollection
+  chip_number: String
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -993,6 +1009,102 @@ type CatTagRelationResponseCollection {
   data: [CatTagEntity!]!
 }
 
+input ContactInformationFiltersInput {
+  id: IDFilterInput
+  phone_number: StringFilterInput
+  first_name: StringFilterInput
+  last_name: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [ContactInformationFiltersInput]
+  or: [ContactInformationFiltersInput]
+  not: ContactInformationFiltersInput
+}
+
+input ContactInformationInput {
+  phone_number: String
+  first_name: String
+  last_name: String
+  publishedAt: DateTime
+}
+
+type ContactInformation {
+  phone_number: String!
+  first_name: String!
+  last_name: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type ContactInformationEntity {
+  id: ID
+  attributes: ContactInformation
+}
+
+type ContactInformationEntityResponse {
+  data: ContactInformationEntity
+}
+
+type ContactInformationEntityResponseCollection {
+  data: [ContactInformationEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+type ContactInformationRelationResponseCollection {
+  data: [ContactInformationEntity!]!
+}
+
+input FoundCatFiltersInput {
+  id: IDFilterInput
+  found_location: StringFilterInput
+  special_signs: StringFilterInput
+  found_datetime: DateTimeFilterInput
+  cat: CatFiltersInput
+  discovery_circumstances: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [FoundCatFiltersInput]
+  or: [FoundCatFiltersInput]
+  not: FoundCatFiltersInput
+}
+
+input FoundCatInput {
+  found_location: String
+  special_signs: String
+  found_datetime: DateTime
+  cat: ID
+  discovery_circumstances: String
+  publishedAt: DateTime
+}
+
+type FoundCat {
+  found_location: String!
+  special_signs: String
+  found_datetime: DateTime!
+  cat: CatEntityResponse
+  discovery_circumstances: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type FoundCatEntity {
+  id: ID
+  attributes: FoundCat
+}
+
+type FoundCatEntityResponse {
+  data: FoundCatEntity
+}
+
+type FoundCatEntityResponseCollection {
+  data: [FoundCatEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
 input ImageFiltersInput {
   id: IDFilterInput
   title: StringFilterInput
@@ -1032,6 +1144,202 @@ type ImageRelationResponseCollection {
   data: [ImageEntity!]!
 }
 
+input LookingForAdoptionCatFiltersInput {
+  id: IDFilterInput
+  cat: CatFiltersInput
+  owned_by_kotkowo: BooleanFilterInput
+  caretaker: ContactInformationFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [LookingForAdoptionCatFiltersInput]
+  or: [LookingForAdoptionCatFiltersInput]
+  not: LookingForAdoptionCatFiltersInput
+}
+
+input LookingForAdoptionCatInput {
+  cat: ID
+  owned_by_kotkowo: Boolean
+  caretaker: ID
+  publishedAt: DateTime
+}
+
+type LookingForAdoptionCat {
+  cat: CatEntityResponse
+  owned_by_kotkowo: Boolean!
+  caretaker: ContactInformationEntityResponse
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type LookingForAdoptionCatEntity {
+  id: ID
+  attributes: LookingForAdoptionCat
+}
+
+type LookingForAdoptionCatEntityResponse {
+  data: LookingForAdoptionCatEntity
+}
+
+type LookingForAdoptionCatEntityResponseCollection {
+  data: [LookingForAdoptionCatEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+input LostCatFiltersInput {
+  id: IDFilterInput
+  disappearance_location: StringFilterInput
+  special_signs: StringFilterInput
+  during_medical_treatment: BooleanFilterInput
+  disappearance_datetime: DateTimeFilterInput
+  cat: CatFiltersInput
+  disappearance_circumstances: BooleanFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [LostCatFiltersInput]
+  or: [LostCatFiltersInput]
+  not: LostCatFiltersInput
+}
+
+input LostCatInput {
+  disappearance_location: String
+  special_signs: String
+  during_medical_treatment: Boolean
+  disappearance_datetime: DateTime
+  cat: ID
+  disappearance_circumstances: Boolean
+  publishedAt: DateTime
+}
+
+type LostCat {
+  disappearance_location: String!
+  special_signs: String
+  during_medical_treatment: Boolean!
+  disappearance_datetime: DateTime!
+  cat: CatEntityResponse
+  disappearance_circumstances: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type LostCatEntity {
+  id: ID
+  attributes: LostCat
+}
+
+type LostCatEntityResponse {
+  data: LostCatEntity
+}
+
+type LostCatEntityResponseCollection {
+  data: [LostCatEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+input SupporterFiltersInput {
+  id: IDFilterInput
+  contact_information: ContactInformationFiltersInput
+  virtual_cats: VirtualCatFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [SupporterFiltersInput]
+  or: [SupporterFiltersInput]
+  not: SupporterFiltersInput
+}
+
+input SupporterInput {
+  contact_information: ID
+  virtual_cats: [ID]
+  publishedAt: DateTime
+}
+
+type Supporter {
+  contact_information: ContactInformationEntityResponse
+  virtual_cats(
+    filters: VirtualCatFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): VirtualCatRelationResponseCollection
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type SupporterEntity {
+  id: ID
+  attributes: Supporter
+}
+
+type SupporterEntityResponse {
+  data: SupporterEntity
+}
+
+type SupporterEntityResponseCollection {
+  data: [SupporterEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+type SupporterRelationResponseCollection {
+  data: [SupporterEntity!]!
+}
+
+input VirtualCatFiltersInput {
+  id: IDFilterInput
+  cat: CatFiltersInput
+  supporters: SupporterFiltersInput
+  caretaker: ContactInformationFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [VirtualCatFiltersInput]
+  or: [VirtualCatFiltersInput]
+  not: VirtualCatFiltersInput
+}
+
+input VirtualCatInput {
+  cat: ID
+  supporters: [ID]
+  caretaker: ID
+  publishedAt: DateTime
+}
+
+type VirtualCat {
+  cat: CatEntityResponse
+  supporters(
+    filters: SupporterFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): SupporterRelationResponseCollection
+  caretaker: ContactInformationEntityResponse
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type VirtualCatEntity {
+  id: ID
+  attributes: VirtualCat
+}
+
+type VirtualCatEntityResponse {
+  data: VirtualCatEntity
+}
+
+type VirtualCatEntityResponseCollection {
+  data: [VirtualCatEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
+type VirtualCatRelationResponseCollection {
+  data: [VirtualCatEntity!]!
+}
+
 union GenericMorph =
     UploadFile
   | UploadFolder
@@ -1048,7 +1356,13 @@ union GenericMorph =
   | ArticleView
   | Cat
   | CatTag
+  | ContactInformation
+  | FoundCat
   | Image
+  | LookingForAdoptionCat
+  | LostCat
+  | Supporter
+  | VirtualCat
 
 input FileInfoInput {
   name: String
@@ -1203,12 +1517,54 @@ type Query {
     pagination: PaginationArg = {}
     sort: [String] = []
   ): CatTagEntityResponseCollection
+  contactInformation(id: ID): ContactInformationEntityResponse
+  contactInformations(
+    filters: ContactInformationFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): ContactInformationEntityResponseCollection
+  foundCat(id: ID): FoundCatEntityResponse
+  foundCats(
+    filters: FoundCatFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): FoundCatEntityResponseCollection
   image(id: ID): ImageEntityResponse
   images(
     filters: ImageFiltersInput
     pagination: PaginationArg = {}
     sort: [String] = []
   ): ImageEntityResponseCollection
+  lookingForAdoptionCat(id: ID): LookingForAdoptionCatEntityResponse
+  lookingForAdoptionCats(
+    filters: LookingForAdoptionCatFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): LookingForAdoptionCatEntityResponseCollection
+  lostCat(id: ID): LostCatEntityResponse
+  lostCats(
+    filters: LostCatFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): LostCatEntityResponseCollection
+  supporter(id: ID): SupporterEntityResponse
+  supporters(
+    filters: SupporterFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): SupporterEntityResponseCollection
+  virtualCat(id: ID): VirtualCatEntityResponse
+  virtualCats(
+    filters: VirtualCatFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): VirtualCatEntityResponseCollection
   me: UsersPermissionsMe
 }
 
@@ -1269,9 +1625,37 @@ type Mutation {
   createCatTag(data: CatTagInput!): CatTagEntityResponse
   updateCatTag(id: ID!, data: CatTagInput!): CatTagEntityResponse
   deleteCatTag(id: ID!): CatTagEntityResponse
+  createContactInformation(
+    data: ContactInformationInput!
+  ): ContactInformationEntityResponse
+  updateContactInformation(
+    id: ID!
+    data: ContactInformationInput!
+  ): ContactInformationEntityResponse
+  deleteContactInformation(id: ID!): ContactInformationEntityResponse
+  createFoundCat(data: FoundCatInput!): FoundCatEntityResponse
+  updateFoundCat(id: ID!, data: FoundCatInput!): FoundCatEntityResponse
+  deleteFoundCat(id: ID!): FoundCatEntityResponse
   createImage(data: ImageInput!): ImageEntityResponse
   updateImage(id: ID!, data: ImageInput!): ImageEntityResponse
   deleteImage(id: ID!): ImageEntityResponse
+  createLookingForAdoptionCat(
+    data: LookingForAdoptionCatInput!
+  ): LookingForAdoptionCatEntityResponse
+  updateLookingForAdoptionCat(
+    id: ID!
+    data: LookingForAdoptionCatInput!
+  ): LookingForAdoptionCatEntityResponse
+  deleteLookingForAdoptionCat(id: ID!): LookingForAdoptionCatEntityResponse
+  createLostCat(data: LostCatInput!): LostCatEntityResponse
+  updateLostCat(id: ID!, data: LostCatInput!): LostCatEntityResponse
+  deleteLostCat(id: ID!): LostCatEntityResponse
+  createSupporter(data: SupporterInput!): SupporterEntityResponse
+  updateSupporter(id: ID!, data: SupporterInput!): SupporterEntityResponse
+  deleteSupporter(id: ID!): SupporterEntityResponse
+  createVirtualCat(data: VirtualCatInput!): VirtualCatEntityResponse
+  updateVirtualCat(id: ID!, data: VirtualCatInput!): VirtualCatEntityResponse
+  deleteVirtualCat(id: ID!): VirtualCatEntityResponse
   upload(
     refId: ID
     ref: String
