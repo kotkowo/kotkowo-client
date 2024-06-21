@@ -1,8 +1,7 @@
 use crate::{
     queries::{
         cat::{CatFiltersInput, CatTagFiltersInput},
-        cat_commons::AdoptedCatFiltersInput,
-        commons::{BooleanFilterInput, DateTime, IdfilterInput, StringFilterInput},
+        commons::{BooleanFilterInput, DateTime, StringFilterInput},
     },
     Age, Color, PaginationArg, Sex,
 };

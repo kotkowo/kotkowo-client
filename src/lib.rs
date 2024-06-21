@@ -5,8 +5,8 @@ mod queries;
 mod schema;
 
 pub use errors::*;
-use models::LookingForHomeCat;
 pub use models::{AdoptedCat, Age, Announcement, Article, Cat, Color, Paged, Sex};
+use models::{FoundCat, LookingForHomeCat, LostCat};
 pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
 pub use queries::commons::PaginationArg;
 
@@ -344,6 +344,181 @@ pub fn get_cat_by_slug(slug: String) -> Result<Cat, Error> {
 
     Ok(cat)
 }
+pub fn list_lost_cat(options: Options<CatFilter>) -> Result<Paged<LostCat>, Error> {
+    use queries::lost_cat::{ListLostCat, ListLostCatVariables};
+
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+
+    let filters: CatFiltersInput = options
+        .filter
+        .map_or_else(CatFiltersInput::default, |filter| filter.into());
+    let pagination = options.pagination.unwrap_or_default();
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+    let vars = ListLostCatVariables {
+        filters,
+        pagination,
+        sort,
+    };
+
+    // stored in case needed for error message
+    let vars_str = serde_json::to_string(&vars);
+
+    let operation = ListLostCat::build(vars);
+    let query = operation.query.clone();
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_cats = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .lost_cats
+        .context(MissingAttributeSnafu {})?;
+
+    let meta = source_cats.meta;
+
+    let cats: Result<Vec<LostCat>, Error> = source_cats
+        .data
+        .into_iter()
+        .map(|cat_entity| {
+            let id = cat_entity.id.map(|id| id.into_inner());
+            cat_entity
+                .attributes
+                .context(MissingAttributeSnafu {})
+                .and_then(|cat| {
+                    let LostCat {
+                        cat,
+                        disappearance_circumstances,
+                        during_medical_treatment,
+                        disappearance_location,
+                        disappearance_datetime,
+                        special_signs,
+                        ..
+                    } = cat.try_into()?;
+                    Ok(LostCat {
+                        disappearance_datetime,
+                        disappearance_location,
+                        during_medical_treatment,
+                        disappearance_circumstances,
+                        special_signs,
+                        id,
+                        cat,
+                    })
+                })
+        })
+        .collect();
+
+    let page: Paged<LostCat> = Paged::new(meta.pagination, cats?);
+
+    Ok(page)
+}
+
+pub fn list_found_cat(options: Options<CatFilter>) -> Result<Paged<FoundCat>, Error> {
+    use queries::found_cat::{ListFoundCat, ListFoundCatVariables};
+
+    use cynic::http::ReqwestBlockingExt;
+    use cynic::QueryBuilder;
+
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+
+    let filters: CatFiltersInput = options
+        .filter
+        .map_or_else(CatFiltersInput::default, |filter| filter.into());
+    let pagination = options.pagination.unwrap_or_default();
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+    let vars = ListFoundCatVariables {
+        filters,
+        pagination,
+        sort,
+    };
+
+    // stored in case needed for error message
+    let vars_str = serde_json::to_string(&vars);
+
+    let operation = ListFoundCat::build(vars);
+    let query = operation.query.clone();
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+
+    let source_cats = response
+        .data
+        .context(MissingAttributeSnafu {})?
+        .found_cats
+        .context(MissingAttributeSnafu {})?;
+
+    let meta = source_cats.meta;
+
+    let cats: Result<Vec<FoundCat>, Error> = source_cats
+        .data
+        .into_iter()
+        .map(|cat_entity| {
+            let id = cat_entity.id.map(|id| id.into_inner());
+            cat_entity
+                .attributes
+                .context(MissingAttributeSnafu {})
+                .and_then(|cat| {
+                    let FoundCat {
+                        cat,
+                        found_datetime,
+                        special_signs,
+                        found_location,
+                        discovery_circumstances,
+                        ..
+                    } = cat.try_into()?;
+                    Ok(FoundCat {
+                        discovery_circumstances,
+                        found_location,
+                        special_signs,
+                        id,
+                        found_datetime,
+                        cat,
+                    })
+                })
+        })
+        .collect();
+
+    let page: Paged<FoundCat> = Paged::new(meta.pagination, cats?);
+
+    Ok(page)
+}
 
 pub fn list_looking_for_adoption_cat(
     options: Options<CatFilter>,
@@ -513,7 +688,7 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 mod tests {
     use crate::{
         get_announcement_article, get_cat, get_cat_by_slug, list_adopted_cat, list_announcement,
-        list_cat, list_looking_for_adoption_cat, Options,
+        list_cat, list_found_cat, list_looking_for_adoption_cat, list_lost_cat, Options,
     };
 
     #[test]
@@ -531,18 +706,31 @@ mod tests {
         let paged = list_adopted_cat(Options::default(), None);
         assert!(paged.is_ok());
     }
+
+    #[test]
+    fn list_lost_cat_test() {
+        let opts = Options::default();
+        let paged = list_lost_cat(opts);
+        println!("{:?}", paged);
+        assert!(paged.is_ok())
+    }
+    #[test]
+    fn list_found_cat_cat_test() {
+        let opts = Options::default();
+        let paged = list_found_cat(opts);
+        assert!(paged.is_ok())
+    }
+
     #[test]
     fn list_cat_test() {
         let opts = Options::default();
         let paged = list_cat(opts);
-        println!("{:?}", paged);
         assert!(paged.is_ok())
     }
     #[test]
     fn list_lfh_cat_test() {
         let opts = Options::default();
         let paged = list_looking_for_adoption_cat(opts, None);
-        println!("{:?}", paged);
         assert!(paged.is_ok())
     }
     #[test]
@@ -555,7 +743,6 @@ mod tests {
     fn get_cat_by_slug_test() {
         let slug = "cat-4";
         let cat = get_cat_by_slug(slug.to_string());
-        println!("{:?}", cat);
         assert!(cat.is_ok())
     }
 }
