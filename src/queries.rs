@@ -7,4 +7,4 @@ pub mod commons;
 pub mod found_cat;
 pub mod looking_for_home;
 pub mod lost_cat;
-
+pub mod virtual_cat;
