@@ -855,7 +855,6 @@ mod tests {
     fn list_lost_cat_test() {
         let opts = Options::default();
         let paged = list_lost_cat(opts);
-        println!("{:?}", paged);
         assert!(paged.is_ok())
     }
     #[test]
@@ -869,7 +868,6 @@ mod tests {
     fn list_virtual_cat_test() {
         let opts = Options::default();
         let paged = list_virtual_cat(opts);
-        println!("{:?}", paged);
         assert!(paged.is_ok())
     }
 
@@ -879,7 +877,6 @@ mod tests {
             ..Default::default()
         };
         let paged = list_supporters_with_virtual_cats(Some(pagination), None);
-        println!("{:?}", paged);
         assert!(paged.is_ok())
     }
     #[test]

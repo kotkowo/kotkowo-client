@@ -52,26 +52,6 @@ pub struct VirtualCat {
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-#[cynic(graphql_type = "SupporterRelationResponseCollection")]
-pub struct SupporterInformationRelationResponseCollection {
-    pub data: Vec<SupporterInformationEntity>,
-}
-
-#[derive(cynic::QueryFragment, Debug)]
-#[cynic(graphql_type = "SupporterEntity")]
-pub struct SupporterInformationEntity {
-    pub attributes: Option<SupporterInformation>,
-}
-
-#[derive(cynic::QueryFragment, Debug)]
-#[cynic(graphql_type = "Supporter")]
-pub struct SupporterInformation {
-    #[cynic(rename = "contact_information")]
-    pub contact_information: Option<ContactInformationEntityResponse>,
-    pub portrait: Option<ImageEntityResponse>,
-}
-
-#[derive(cynic::QueryFragment, Debug)]
 pub struct SupporterEntityResponseCollection {
     pub meta: ResponseCollectionMeta,
     pub data: Vec<SupporterEntity>,
@@ -80,7 +60,6 @@ pub struct SupporterEntityResponseCollection {
 #[derive(cynic::QueryFragment, Debug)]
 pub struct SupporterEntity {
     pub attributes: Option<Supporter>,
-    pub id: Option<cynic::Id>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
