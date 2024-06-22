@@ -1238,6 +1238,7 @@ input SupporterFiltersInput {
   id: IDFilterInput
   contact_information: ContactInformationFiltersInput
   virtual_cats: VirtualCatFiltersInput
+  portrait: ImageFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -1249,6 +1250,7 @@ input SupporterFiltersInput {
 input SupporterInput {
   contact_information: ID
   virtual_cats: [ID]
+  portrait: ID
   publishedAt: DateTime
 }
 
@@ -1260,6 +1262,7 @@ type Supporter {
     sort: [String] = []
     publicationState: PublicationState = LIVE
   ): VirtualCatRelationResponseCollection
+  portrait: ImageEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
