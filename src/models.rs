@@ -81,7 +81,6 @@ impl TryFrom<SourceSupporter> for Supporter {
             .data
             .into_iter()
             .map(|virtual_cat_entity| {
-                let id = virtual_cat_entity.id.map(|id| id.into_inner());
                 virtual_cat_entity
                     .attributes
                     .context(MissingAttributeSnafu {})
