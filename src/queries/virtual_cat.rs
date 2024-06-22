@@ -3,6 +3,20 @@
 use crate::schema;
 
 pub use crate::queries::cat_commons::*;
+#[derive(cynic::QueryVariables, Debug)]
+pub struct ListSupporterWithCatsVariables {
+    pub pagination: PaginationArg,
+
+    #[cynic(skip_serializing_if = "Option::is_none")]
+    pub sort: Option<Vec<Option<String>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+#[cynic(graphql_type = "Query", variables = "ListSupporterWithCatsVariables")]
+pub struct ListSupporterWithCats {
+    #[arguments(pagination: $pagination, sort: $sort)]
+    pub supporters: Option<SupporterEntityResponseCollection>,
+}
 
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ListVirtualCatVariables<'a> {
@@ -35,4 +49,50 @@ pub struct VirtualCatEntity {
 #[derive(cynic::QueryFragment, Debug)]
 pub struct VirtualCat {
     pub cat: Option<CatEntityResponse>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+#[cynic(graphql_type = "SupporterRelationResponseCollection")]
+pub struct SupporterInformationRelationResponseCollection {
+    pub data: Vec<SupporterInformationEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+#[cynic(graphql_type = "SupporterEntity")]
+pub struct SupporterInformationEntity {
+    pub attributes: Option<SupporterInformation>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+#[cynic(graphql_type = "Supporter")]
+pub struct SupporterInformation {
+    #[cynic(rename = "contact_information")]
+    pub contact_information: Option<ContactInformationEntityResponse>,
+    pub portrait: Option<ImageEntityResponse>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct SupporterEntityResponseCollection {
+    pub meta: ResponseCollectionMeta,
+    pub data: Vec<SupporterEntity>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct SupporterEntity {
+    pub attributes: Option<Supporter>,
+    pub id: Option<cynic::Id>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct Supporter {
+    #[cynic(rename = "contact_information")]
+    pub contact_information: Option<ContactInformationEntityResponse>,
+    pub portrait: Option<ImageEntityResponse>,
+    #[cynic(rename = "virtual_cats")]
+    pub virtual_cats: Option<VirtualCatRelationResponseCollection>,
+}
+
+#[derive(cynic::QueryFragment, Debug)]
+pub struct VirtualCatRelationResponseCollection {
+    pub data: Vec<VirtualCatEntity>,
 }

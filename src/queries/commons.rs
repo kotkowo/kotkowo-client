@@ -363,17 +363,6 @@ pub struct ContactInformation {
     pub phone_number: String,
 }
 #[derive(cynic::QueryFragment, Debug)]
-pub struct SupporterRelationResponseCollection {
-    pub data: Vec<SupporterEntity>,
-}
-
-#[derive(cynic::QueryFragment, Debug)]
-pub struct SupporterEntity {
-    pub attributes: Option<Supporter>,
-}
-
-#[derive(cynic::QueryFragment, Debug)]
-pub struct Supporter {
-    #[cynic(rename = "contact_information")]
-    pub contact_information: Option<ContactInformationEntityResponse>,
+pub struct ImageEntityResponse {
+    pub data: Option<ImageEntity>,
 }

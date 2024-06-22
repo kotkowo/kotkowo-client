@@ -12,6 +12,7 @@ use crate::queries::{
     commons::{UploadFile, UploadFileEntityResponse},
     found_cat::FoundCat as SourceFoundCat,
     lost_cat::LostCat as SourceLostCat,
+    virtual_cat::Supporter as SourceSupporter,
 };
 pub use crate::queries::{
     cat::{Age, Color, FivFelv, MedicalStatus, Sex},
@@ -50,6 +51,77 @@ impl TryFrom<UploadFileEntityResponse> for Image {
             width: attributes.width,
             height: attributes.height,
             name: attributes.name,
+        })
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Supporter"
+)]
+pub struct Supporter {
+    pub id: Option<String>,
+    pub contact_information: ContactInformation,
+    pub portrait: Option<Image>,
+    pub virtual_cats: Vec<Cat>,
+}
+
+impl TryFrom<SourceSupporter> for Supporter {
+    type Error = Error;
+    fn try_from(value: SourceSupporter) -> Result<Supporter, Error> {
+        let SourceSupporter {
+            contact_information,
+            portrait,
+            virtual_cats,
+        } = value;
+        let cats: Result<Vec<Cat>, Error> = virtual_cats
+            .context(MissingAttributeSnafu {})?
+            .data
+            .into_iter()
+            .map(|virtual_cat_entity| {
+                let id = virtual_cat_entity.id.map(|id| id.into_inner());
+                virtual_cat_entity
+                    .attributes
+                    .context(MissingAttributeSnafu {})
+                    .and_then(|virtual_cat| {
+                        Ok(virtual_cat
+                            .cat
+                            .context(MissingAttributeSnafu {})?
+                            .data
+                            .context(MissingAttributeSnafu {})?
+                            .attributes
+                            .context(MissingAttributeSnafu {})?
+                            .into())
+                    })
+            })
+            .collect();
+
+        let portrait: Result<Option<Image>, Error> = portrait
+            .context(MissingAttributeSnafu {})?
+            .data
+            .map(|image_entity| {
+                image_entity
+                    .attributes
+                    .context(MissingAttributeSnafu {})?
+                    .image
+                    .try_into()
+            })
+            .transpose();
+
+        let contact_information: ContactInformation = contact_information
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?;
+
+        Ok(Supporter {
+            virtual_cats: cats?,
+            portrait: portrait?,
+            contact_information,
+            id: None,
         })
     }
 }
@@ -300,6 +372,7 @@ impl From<SourceAnnouncement> for Announcement {
         }
     }
 }
+
 #[derive(Debug)]
 #[cfg_attr(
     feature = "elixir_support",
