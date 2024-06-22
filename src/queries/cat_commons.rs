@@ -29,9 +29,6 @@ pub struct Cat {
     pub color: Color,
     #[cynic(rename = "contact_informations")]
     pub contact_informations: Option<ContactInformationRelationResponseCollection>,
-    pub created_at: Option<DateTime>,
-    pub published_at: Option<DateTime>,
-    pub updated_at: Option<DateTime>,
     #[cynic(rename = "is_dead")]
     pub is_dead: bool,
     #[cynic(rename = "medical_status")]
