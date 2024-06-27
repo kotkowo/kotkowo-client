@@ -5,19 +5,18 @@ mod queries;
 mod schema;
 
 pub use errors::*;
-pub use models::{AdoptedCat, Age, Announcement, Article, Cat, Color, Paged, Sex};
-use models::{FoundCat, LookingForHomeCat, LostCat};
+pub use models::{
+    AdoptedCat, Age, Announcement, Article, Cat, Color, FoundCat, LookingForHomeCat, LostCat,
+    Paged, Sex, Supporter,
+};
 pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
-pub use queries::commons::PaginationArg;
+pub use queries::commons::{ContactInformation, PaginationArg};
 
 use queries::{cat::CatFiltersInput, commons::DateTime};
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
-use crate::{
-    models::Supporter,
-    queries::commons::{BooleanFilterInput, StringFilterInput},
-};
+use crate::queries::commons::{BooleanFilterInput, StringFilterInput};
 
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -899,7 +898,7 @@ mod tests {
     }
     #[test]
     fn get_cat_by_slug_test() {
-        let slug = "cat-4";
+        let slug = "luna";
         let cat = get_cat_by_slug(slug.to_string());
         assert!(cat.is_ok())
     }
