@@ -6,8 +6,8 @@ use crate::schema;
 pub use crate::queries::cat_commons::*;
 
 #[derive(cynic::QueryVariables, Debug)]
-pub struct GetCatVariables<'a> {
-    pub id: &'a cynic::Id,
+pub struct GetCatVariables {
+    pub id: cynic::Id,
 }
 #[derive(cynic::QueryVariables, Debug)]
 pub struct ListCatVariables<'a> {

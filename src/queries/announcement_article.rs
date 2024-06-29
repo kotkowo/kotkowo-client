@@ -4,8 +4,8 @@ pub use crate::queries::commons::*;
 use crate::schema;
 
 #[derive(cynic::QueryVariables, Debug)]
-pub struct GetArticleVariables<'a> {
-    pub id: &'a cynic::Id,
+pub struct GetArticleVariables {
+    pub id: cynic::Id,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
