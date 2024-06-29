@@ -5,7 +5,7 @@ pub use crate::queries::commons::*;
 use crate::schema;
 
 #[derive(cynic::QueryVariables, Debug)]
-pub struct AdoptedCatQueryVariables<'a> {
+pub struct ListAdoptedCatVariables<'a> {
     pub cat: CatFiltersInput<'a>,
     pub pagination: PaginationArg,
 
@@ -16,8 +16,8 @@ pub struct AdoptedCatQueryVariables<'a> {
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-#[cynic(graphql_type = "Query", variables = "AdoptedCatQueryVariables")]
-pub struct AdoptedCatQuery {
+#[cynic(graphql_type = "Query", variables = "ListAdoptedCatVariables")]
+pub struct ListAdoptedCat {
     #[arguments(filters: { adoption_date: { between: $between }, cat: $cat }, pagination: $pagination, sort: $sort)]
     pub adopted_cats: Option<AdoptedCatEntityResponseCollection>,
 }
