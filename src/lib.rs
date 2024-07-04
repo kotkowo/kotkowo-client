@@ -98,23 +98,21 @@ pub fn list_adopted_cat(
     list_entity::<AdoptedCat>(vars)
 }
 
-fn construct_filter_from_slug(slug: String) -> CatFiltersInput<'static> {
-    CatFiltersInput {
-        slug: Some(StringFilterInput {
-            eq: Some(slug),
+impl CatFiltersInput<'_> {
+    fn from_slug(slug: String) -> Self {
+        CatFiltersInput {
+            slug: Some(StringFilterInput {
+                eq: Some(slug),
+                ..Default::default()
+            }),
             ..Default::default()
-        }),
-        ..Default::default()
+        }
     }
-}
-fn extract_singular_cat_from_vec<C>(cats: Vec<C>) -> Option<C> {
-    assert!(cats.len() < 2);
-    cats.into_iter().next()
 }
 
 pub fn get_lfh_cat_by_slug(slug: String) -> Result<LookingForHomeCat, Error> {
     let key = serde_json::to_string(&slug);
-    let filters = construct_filter_from_slug(slug);
+    let filters = CatFiltersInput::from_slug(slug);
     let pagination = PaginationArg::default();
 
     let vars = ListLookingForAdoptionVariables {
@@ -124,7 +122,9 @@ pub fn get_lfh_cat_by_slug(slug: String) -> Result<LookingForHomeCat, Error> {
         sort: None,
     };
     let cats = list_entity::<LookingForHomeCat>(vars)?.items;
-    extract_singular_cat_from_vec::<LookingForHomeCat>(cats)
+    assert!(cats.len() < 2);
+    cats.into_iter()
+        .next()
         .context(NotFoundSnafu { key: key.unwrap() })
 }
 
