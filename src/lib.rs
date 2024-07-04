@@ -13,7 +13,9 @@ pub use models::{
 pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
 pub use queries::commons::{ContactInformation, PaginationArg};
 
-use queries::{cat::CatFiltersInput, commons::DateTime};
+use queries::{
+    cat::CatFiltersInput, commons::DateTime, looking_for_home::ListLookingForAdoptionVariables,
+};
 use snafu::{OptionExt, ResultExt};
 use std::env;
 
@@ -94,6 +96,36 @@ pub fn list_adopted_cat(
     };
 
     list_entity::<AdoptedCat>(vars)
+}
+
+fn construct_filter_from_slug(slug: String) -> CatFiltersInput<'static> {
+    CatFiltersInput {
+        slug: Some(StringFilterInput {
+            eq: Some(slug),
+            ..Default::default()
+        }),
+        ..Default::default()
+    }
+}
+fn extract_singular_cat_from_vec<C>(cats: Vec<C>) -> Option<C> {
+    assert!(cats.len() < 2);
+    cats.into_iter().next()
+}
+
+pub fn get_lfh_cat_by_slug(slug: String) -> Result<LookingForHomeCat, Error> {
+    let key = serde_json::to_string(&slug);
+    let filters = construct_filter_from_slug(slug);
+    let pagination = PaginationArg::default();
+
+    let vars = ListLookingForAdoptionVariables {
+        filters,
+        pagination,
+        owned_by_kotkowo: None,
+        sort: None,
+    };
+    let cats = list_entity::<LookingForHomeCat>(vars)?.items;
+    extract_singular_cat_from_vec::<LookingForHomeCat>(cats)
+        .context(NotFoundSnafu { key: key.unwrap() })
 }
 
 pub fn get_cat_by_slug(slug: String) -> Result<Cat, Error> {
