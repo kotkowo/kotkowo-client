@@ -21,7 +21,11 @@ use std::env;
 
 use crate::{
     entity::{get_entity, list_entity},
-    queries::commons::{BooleanFilterInput, StringFilterInput},
+    queries::{
+        commons::{BooleanFilterInput, StringFilterInput},
+        found_cat::ListFoundCatVariables,
+        lost_cat::ListLostCatVariables,
+    },
 };
 mod entity;
 
@@ -108,6 +112,38 @@ impl CatFiltersInput<'_> {
             ..Default::default()
         }
     }
+}
+pub fn get_found_cat_by_slug(slug: String) -> Result<FoundCat, Error> {
+    let key = serde_json::to_string(&slug);
+    let filters = CatFiltersInput::from_slug(slug);
+    let pagination = PaginationArg::default();
+
+    let vars = ListFoundCatVariables {
+        filters,
+        pagination,
+        sort: None,
+    };
+    let cats = list_entity::<FoundCat>(vars)?.items;
+    assert!(cats.len() < 2);
+    cats.into_iter()
+        .next()
+        .context(NotFoundSnafu { key: key.unwrap() })
+}
+pub fn get_lost_cat_by_slug(slug: String) -> Result<LostCat, Error> {
+    let key = serde_json::to_string(&slug);
+    let filters = CatFiltersInput::from_slug(slug);
+    let pagination = PaginationArg::default();
+
+    let vars = ListLostCatVariables {
+        filters,
+        pagination,
+        sort: None,
+    };
+    let cats = list_entity::<LostCat>(vars)?.items;
+    assert!(cats.len() < 2);
+    cats.into_iter()
+        .next()
+        .context(NotFoundSnafu { key: key.unwrap() })
 }
 
 pub fn get_lfh_cat_by_slug(slug: String) -> Result<LookingForHomeCat, Error> {
