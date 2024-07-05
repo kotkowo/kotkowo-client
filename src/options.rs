@@ -50,6 +50,7 @@ enum Filter<
     EqualsCI(T),
     Contains(T),
     ContainsCI(T),
+    StartsWith(T),
     Or(Vec<T>),
     In(Vec<T>),
 }
@@ -61,6 +62,10 @@ impl<
 {
     fn from(value: Filter<T>) -> Self {
         match value {
+            Filter::StartsWith(value) => StringFilterInput {
+                starts_with: Some(value.to_string()),
+                ..StringFilterInput::default()
+            },
             Filter::Equals(value) => StringFilterInput {
                 eq: Some(value.to_string()),
                 ..StringFilterInput::default()
