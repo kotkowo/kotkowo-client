@@ -484,7 +484,6 @@ mod tests {
     fn get_external_media() {
         let opts = Options::default();
         let media = list_external_media(opts);
-        println!("{:?}", media);
         assert!(media.is_ok());
     }
 }
