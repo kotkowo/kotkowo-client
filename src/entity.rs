@@ -1,5 +1,6 @@
-use crate::models::LostCat;
+use crate::models::{ExternalMedia, LostCat};
 
+use crate::queries::external_media::{ListExternalMedia, ListExternalMediaVariables};
 use crate::queries::{
     adopted_cat::{ListAdoptedCat, ListAdoptedCatVariables},
     announcement::{ListAnnouncements, ListAnnouncementsVariables},
@@ -354,6 +355,37 @@ impl ListableEntity for AdoptedCat {
             .collect();
 
         Ok(Paged::new(meta.pagination, adopted_cats?))
+    }
+}
+impl ListableEntity for ExternalMedia {
+    type QueryType = ListExternalMedia;
+    type Variables = ListExternalMediaVariables<'static>;
+    type ResponseData = GraphQlResponse<Self::QueryType>;
+
+    fn extract_paged_data(
+        response_data: GraphQlResponse<Self::QueryType>,
+    ) -> Result<Paged<Self>, Error> {
+        let source_external_media = response_data
+            .data
+            .context(MissingAttributeSnafu {})?
+            .external_medias
+            .context(MissingAttributeSnafu {})?;
+
+        let meta = source_external_media.meta;
+
+        let external_media: Result<Vec<ExternalMedia>, Error> = source_external_media
+            .data
+            .into_iter()
+            .map(|media_entity| {
+                let id = media_entity.id.map(|id| id.into_inner());
+                media_entity
+                    .attributes
+                    .context(MissingAttributeSnafu {})
+                    .map(|media| ExternalMedia { id, ..media.into() })
+            })
+            .collect();
+
+        Ok(Paged::new(meta.pagination, external_media?))
     }
 }
 
