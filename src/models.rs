@@ -10,6 +10,7 @@ use crate::queries::{
     },
     cat::Cat as SourceCat,
     commons::{UploadFile, UploadFileEntityResponse},
+    external_media::ExternalMedia as SourceExternalMedia,
     found_cat::FoundCat as SourceFoundCat,
     lost_cat::LostCat as SourceLostCat,
     virtual_cat::Supporter as SourceSupporter,
@@ -330,6 +331,46 @@ impl TryFrom<SourceArticleAnnouncement> for Article {
             content,
             introduction,
         })
+    }
+}
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.ExternalMedia"
+)]
+pub struct ExternalMedia {
+    pub id: Option<String>,
+    pub title: String,
+    pub media_url: String,
+    pub tags: Vec<String>,
+    pub image: Option<Image>,
+}
+
+impl From<SourceExternalMedia> for ExternalMedia {
+    fn from(value: SourceExternalMedia) -> Self {
+        let SourceExternalMedia {
+            image,
+            tags,
+            title,
+            media_url,
+        } = value;
+        let image: Option<Image> = image.try_into().ok();
+        let tags: Vec<String> = tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
+
+        ExternalMedia {
+            id: None,
+            title,
+            media_url,
+            tags,
+            image,
+        }
     }
 }
 

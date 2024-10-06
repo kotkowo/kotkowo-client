@@ -6,10 +6,12 @@ mod queries;
 mod schema;
 
 pub use errors::*;
+use models::ExternalMedia;
 pub use models::{
     AdoptedCat, Age, Announcement, Article, Cat, Color, FoundCat, LookingForHomeCat, LostCat,
     Paged, Sex, Supporter,
 };
+use options::ExternalMediaFilter;
 pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
 pub use queries::commons::{ContactInformation, PaginationArg};
 
@@ -23,6 +25,7 @@ use crate::{
     entity::{get_entity, list_entity},
     queries::{
         commons::{BooleanFilterInput, StringFilterInput},
+        external_media::ListExternalMediaVariables,
         found_cat::ListFoundCatVariables,
         lost_cat::ListLostCatVariables,
     },
@@ -36,6 +39,22 @@ pub fn get_announcement_article(announcement_id: String) -> Result<Article, Erro
     let id: cynic::Id = announcement_id.into();
     let vars = GetArticleVariables { id };
     get_entity::<Article>(vars)
+}
+pub fn list_external_media(
+    options: Options<ExternalMediaFilter>,
+) -> Result<Paged<ExternalMedia>, Error> {
+    let pagination = options.pagination;
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+
+    let vars = ListExternalMediaVariables {
+        filters: None,
+        pagination,
+        sort,
+    };
+    list_entity::<ExternalMedia>(vars)
 }
 pub fn list_announcement(
     options: Options<AnnouncementFilter>,
@@ -389,8 +408,8 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 mod tests {
     use crate::{
         get_announcement_article, get_cat, get_cat_by_slug, list_adopted_cat, list_announcement,
-        list_cat, list_found_cat, list_looking_for_adoption_cat, list_lost_cat,
-        list_supporters_with_virtual_cats, list_virtual_cat, Options, PaginationArg,
+        list_cat, list_external_media, list_found_cat, list_looking_for_adoption_cat,
+        list_lost_cat, list_supporters_with_virtual_cats, list_virtual_cat, Options, PaginationArg,
     };
 
     #[test]
@@ -400,7 +419,7 @@ mod tests {
     }
     #[test]
     fn get_announcement_article_test() {
-        let article = get_announcement_article("1".to_string());
+        let article = get_announcement_article("4".to_string());
         assert!(article.is_ok());
     }
     #[test]
@@ -460,5 +479,12 @@ mod tests {
         let slug = "luna";
         let cat = get_cat_by_slug(slug.to_string());
         assert!(cat.is_ok())
+    }
+    #[test]
+    fn get_external_media() {
+        let opts = Options::default();
+        let media = list_external_media(opts);
+        println!("{:?}", media);
+        assert!(media.is_ok());
     }
 }

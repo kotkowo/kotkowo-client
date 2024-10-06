@@ -106,6 +106,14 @@ pub struct AnnouncementFilter {}
 #[cfg_attr(
     feature = "elixir_support",
     derive(rustler::NifStruct),
+    module = "Kotkowo.Client.ExternalMedia.Filter"
+)]
+pub struct ExternalMediaFilter {}
+
+#[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
     module = "Kotkowo.Client.Cat.Filter"
 )]
 pub struct CatFilter {
