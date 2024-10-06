@@ -1051,6 +1051,55 @@ type ContactInformationRelationResponseCollection {
   data: [ContactInformationEntity!]!
 }
 
+input ExternalMediaFiltersInput {
+  id: IDFilterInput
+  title: StringFilterInput
+  tags: AnnouncementTagFiltersInput
+  media_url: StringFilterInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [ExternalMediaFiltersInput]
+  or: [ExternalMediaFiltersInput]
+  not: ExternalMediaFiltersInput
+}
+
+input ExternalMediaInput {
+  title: String
+  tags: [ID]
+  media_url: String
+  image: ID
+  publishedAt: DateTime
+}
+
+type ExternalMedia {
+  title: String!
+  tags(
+    filters: AnnouncementTagFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+  ): AnnouncementTagRelationResponseCollection
+  media_url: String!
+  image: UploadFileEntityResponse!
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type ExternalMediaEntity {
+  id: ID
+  attributes: ExternalMedia
+}
+
+type ExternalMediaEntityResponse {
+  data: ExternalMediaEntity
+}
+
+type ExternalMediaEntityResponseCollection {
+  data: [ExternalMediaEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
 input FoundCatFiltersInput {
   id: IDFilterInput
   found_location: StringFilterInput
@@ -1355,6 +1404,7 @@ union GenericMorph =
   | Cat
   | CatTag
   | ContactInformation
+  | ExternalMedia
   | FoundCat
   | Image
   | LookingForAdoptionCat
@@ -1522,6 +1572,13 @@ type Query {
     sort: [String] = []
     publicationState: PublicationState = LIVE
   ): ContactInformationEntityResponseCollection
+  externalMedia(id: ID): ExternalMediaEntityResponse
+  externalMedias(
+    filters: ExternalMediaFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): ExternalMediaEntityResponseCollection
   foundCat(id: ID): FoundCatEntityResponse
   foundCats(
     filters: FoundCatFiltersInput
@@ -1631,6 +1688,12 @@ type Mutation {
     data: ContactInformationInput!
   ): ContactInformationEntityResponse
   deleteContactInformation(id: ID!): ContactInformationEntityResponse
+  createExternalMedia(data: ExternalMediaInput!): ExternalMediaEntityResponse
+  updateExternalMedia(
+    id: ID!
+    data: ExternalMediaInput!
+  ): ExternalMediaEntityResponse
+  deleteExternalMedia(id: ID!): ExternalMediaEntityResponse
   createFoundCat(data: FoundCatInput!): FoundCatEntityResponse
   updateFoundCat(id: ID!, data: FoundCatInput!): FoundCatEntityResponse
   deleteFoundCat(id: ID!): FoundCatEntityResponse
