@@ -6,13 +6,11 @@ mod queries;
 mod schema;
 
 pub use errors::*;
-use models::ExternalMedia;
 pub use models::{
-    AdoptedCat, Age, Announcement, Article, Cat, Color, FoundCat, LookingForHomeCat, LostCat,
-    Paged, Sex, Supporter,
+    AdoptedCat, Age, Announcement, Article, Cat, Color, ExternalMedia, FoundCat, LookingForHomeCat,
+    LostCat, Paged, Sex, Supporter,
 };
-use options::ExternalMediaFilter;
-pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, Options};
+pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, ExternalMediaFilter, Options};
 pub use queries::commons::{ContactInformation, PaginationArg};
 
 use queries::{
