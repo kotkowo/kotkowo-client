@@ -17,7 +17,7 @@ pub struct ListLookingForAdoptionVariables<'a> {
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(graphql_type = "Query", variables = "ListLookingForAdoptionVariables")]
 pub struct ListLookingForAdoptionQuery {
-    #[arguments(filters: { cat: $filters, owned_by_kotkowo: { eq: $owned_by_kotkowo } })]
+    #[arguments(filters: { cat: $filters, owned_by_kotkowo: { eq: $owned_by_kotkowo } }, pagination: $pagination, sort: $sort)]
     pub looking_for_adoption_cats: Option<LookingForAdoptionCatEntityResponseCollection>,
 }
 

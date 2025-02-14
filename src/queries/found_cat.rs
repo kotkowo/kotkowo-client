@@ -16,7 +16,7 @@ pub struct ListFoundCatVariables<'a> {
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(graphql_type = "Query", variables = "ListFoundCatVariables")]
 pub struct ListFoundCat {
-    #[arguments(filters: { cat: $filters })]
+    #[arguments(filters: { cat: $filters }, pagination: $pagination, sort: $sort)]
     pub found_cats: Option<FoundCatEntityResponseCollection>,
 }
 
