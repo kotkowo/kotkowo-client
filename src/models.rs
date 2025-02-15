@@ -309,12 +309,17 @@ pub struct Article {
     pub image: Option<Image>,
     pub introduction: String,
     pub content: String,
+    pub tags: Vec<String>,
 }
 
 impl TryFrom<SourceArticleAnnouncement> for Article {
     type Error = Error;
     fn try_from(value: SourceArticleAnnouncement) -> Result<Article, Error> {
-        let SourceArticleAnnouncement { article, title } = value;
+        let SourceArticleAnnouncement {
+            article,
+            title,
+            announcement_tags,
+        } = value;
         let ArticleEntityResponse { data } = article.context(MissingAttributeSnafu {})?;
         let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {})?;
         let SourceArticle {
@@ -323,6 +328,13 @@ impl TryFrom<SourceArticleAnnouncement> for Article {
             introduction,
         } = attributes.context(MissingAttributeSnafu {})?;
         let image: Option<Image> = image.try_into().ok();
+        let tags: Vec<String> = announcement_tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
         let id: Option<String> = id.map(|id| id.into_inner());
         Ok(Article {
             id,
@@ -330,6 +342,7 @@ impl TryFrom<SourceArticleAnnouncement> for Article {
             image,
             content,
             introduction,
+            tags,
         })
     }
 }

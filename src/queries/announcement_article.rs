@@ -1,5 +1,6 @@
 #![allow(non_snake_case)] // please don't abuse, it's for rustler's generated atoms
 
+use crate::queries::announcement::AnnouncementTagRelationResponseCollection;
 pub use crate::queries::commons::*;
 use crate::schema;
 
@@ -29,6 +30,8 @@ pub struct AnnouncementEntity {
 pub struct Announcement {
     pub article: Option<ArticleEntityResponse>,
     pub title: String,
+    #[cynic(rename = "announcement_tags")]
+    pub announcement_tags: Option<AnnouncementTagRelationResponseCollection>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
