@@ -673,6 +673,55 @@ type AdoptedCatEntityResponseCollection {
   meta: ResponseCollectionMeta!
 }
 
+input AdviceFiltersInput {
+  id: IDFilterInput
+  title: StringFilterInput
+  tags: AnnouncementTagFiltersInput
+  article: ArticleFiltersInput
+  createdAt: DateTimeFilterInput
+  updatedAt: DateTimeFilterInput
+  publishedAt: DateTimeFilterInput
+  and: [AdviceFiltersInput]
+  or: [AdviceFiltersInput]
+  not: AdviceFiltersInput
+}
+
+input AdviceInput {
+  title: String
+  tags: [ID]
+  article: ID
+  image: ID
+  publishedAt: DateTime
+}
+
+type Advice {
+  title: String!
+  tags(
+    filters: AnnouncementTagFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+  ): AnnouncementTagRelationResponseCollection
+  article: ArticleEntityResponse
+  image: UploadFileEntityResponse!
+  createdAt: DateTime
+  updatedAt: DateTime
+  publishedAt: DateTime
+}
+
+type AdviceEntity {
+  id: ID
+  attributes: Advice
+}
+
+type AdviceEntityResponse {
+  data: AdviceEntity
+}
+
+type AdviceEntityResponseCollection {
+  data: [AdviceEntity!]!
+  meta: ResponseCollectionMeta!
+}
+
 input AnnouncementFiltersInput {
   id: IDFilterInput
   title: StringFilterInput
@@ -765,6 +814,7 @@ input ArticleFiltersInput {
   Introduction: StringFilterInput
   announcement: AnnouncementFiltersInput
   content: StringFilterInput
+  advice: AdviceFiltersInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -778,6 +828,7 @@ input ArticleInput {
   announcement: ID
   image: ID
   content: String
+  advice: ID
   publishedAt: DateTime
 }
 
@@ -786,6 +837,7 @@ type Article {
   announcement: AnnouncementEntityResponse
   image: UploadFileEntityResponse!
   content: String!
+  advice: AdviceEntityResponse
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -1397,6 +1449,7 @@ union GenericMorph =
   | UsersPermissionsRole
   | UsersPermissionsUser
   | AdoptedCat
+  | Advice
   | Announcement
   | AnnouncementTag
   | Article
@@ -1526,6 +1579,13 @@ type Query {
     sort: [String] = []
     publicationState: PublicationState = LIVE
   ): AdoptedCatEntityResponseCollection
+  advice(id: ID): AdviceEntityResponse
+  advices(
+    filters: AdviceFiltersInput
+    pagination: PaginationArg = {}
+    sort: [String] = []
+    publicationState: PublicationState = LIVE
+  ): AdviceEntityResponseCollection
   announcement(id: ID): AnnouncementEntityResponse
   announcements(
     filters: AnnouncementFiltersInput
@@ -1654,6 +1714,9 @@ type Mutation {
   createAdoptedCat(data: AdoptedCatInput!): AdoptedCatEntityResponse
   updateAdoptedCat(id: ID!, data: AdoptedCatInput!): AdoptedCatEntityResponse
   deleteAdoptedCat(id: ID!): AdoptedCatEntityResponse
+  createAdvice(data: AdviceInput!): AdviceEntityResponse
+  updateAdvice(id: ID!, data: AdviceInput!): AdviceEntityResponse
+  deleteAdvice(id: ID!): AdviceEntityResponse
   createAnnouncement(data: AnnouncementInput!): AnnouncementEntityResponse
   updateAnnouncement(
     id: ID!
