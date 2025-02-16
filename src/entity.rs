@@ -1,5 +1,7 @@
-use crate::models::{ExternalMedia, LostCat};
+use crate::models::{Advice, AdviceArticle, ExternalMedia, LostCat};
 
+use crate::queries::advice::{ListAdvice, ListAdviceVariables};
+use crate::queries::advice_article::{GetAdviceArticle, GetAdviceArticleVariables};
 use crate::queries::external_media::{ListExternalMedia, ListExternalMediaVariables};
 use crate::queries::{
     adopted_cat::{ListAdoptedCat, ListAdoptedCatVariables},
@@ -389,6 +391,41 @@ impl ListableEntity for ExternalMedia {
     }
 }
 
+impl ListableEntity for Advice {
+    type QueryType = ListAdvice;
+    type Variables = ListAdviceVariables<'static>;
+    type ResponseData = GraphQlResponse<Self::QueryType>;
+
+    fn extract_paged_data(
+        response_data: GraphQlResponse<Self::QueryType>,
+    ) -> Result<Paged<Self>, Error> {
+        let source_advices = response_data
+            .data
+            .context(MissingAttributeSnafu {})?
+            .advices
+            .context(MissingAttributeSnafu {})?;
+
+        let meta = source_advices.meta;
+
+        let advices: Result<Vec<Advice>, Error> = source_advices
+            .data
+            .into_iter()
+            .map(|advice_entity| {
+                let id = advice_entity.id.map(|id| id.into_inner());
+                advice_entity
+                    .attributes
+                    .context(MissingAttributeSnafu {})
+                    .map(|advice| Advice {
+                        id,
+                        ..advice.into()
+                    })
+            })
+            .collect();
+
+        Ok(Paged::new(meta.pagination, advices?))
+    }
+}
+
 impl ListableEntity for Announcement {
     type QueryType = ListAnnouncements;
     type Variables = ListAnnouncementsVariables<'static>;
@@ -423,6 +460,28 @@ impl ListableEntity for Announcement {
         Ok(Paged::new(meta.pagination, announcements?))
     }
 }
+
+impl SingularEntity for AdviceArticle {
+    type Variables = GetAdviceArticleVariables;
+    type QueryType = GetAdviceArticle;
+    type ResponseData = GraphQlResponse<Self::QueryType>;
+
+    fn extract_singular_data(
+        response_data: GraphQlResponse<Self::QueryType>,
+    ) -> Result<AdviceArticle, Error> {
+        let source_advice = response_data
+            .data
+            .context(MissingAttributeSnafu {})?
+            .advice
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?;
+
+        source_advice.try_into()
+    }
+}
 impl SingularEntity for Article {
     type Variables = GetArticleVariables;
     type QueryType = GetArticle;
@@ -444,6 +503,7 @@ impl SingularEntity for Article {
         source_announcement.try_into()
     }
 }
+
 impl SingularEntity for Cat {
     type Variables = GetCatVariables;
     type QueryType = GetCat;

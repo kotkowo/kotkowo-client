@@ -1,4 +1,6 @@
 pub mod adopted_cat;
+pub mod advice;
+pub mod advice_article;
 pub mod announcement;
 pub mod announcement_article;
 pub mod cat;
