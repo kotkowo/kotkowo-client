@@ -7,10 +7,12 @@ mod schema;
 
 pub use errors::*;
 pub use models::{
-    AdoptedCat, Age, Announcement, Article, Cat, Color, ExternalMedia, FoundCat, LookingForHomeCat,
-    LostCat, Paged, Sex, Supporter,
+    AdoptedCat, Advice, Age, Announcement, Article, Cat, Color, ExternalMedia, FoundCat,
+    LookingForHomeCat, LostCat, Paged, Sex, Supporter,
 };
-pub use options::{AnnouncementFilter, BetweenDateTime, CatFilter, ExternalMediaFilter, Options};
+pub use options::{
+    AdviceFilter, AnnouncementFilter, BetweenDateTime, CatFilter, ExternalMediaFilter, Options,
+};
 pub use queries::commons::{ContactInformation, PaginationArg};
 
 use queries::{
@@ -21,6 +23,7 @@ use std::env;
 
 use crate::{
     entity::{get_entity, list_entity},
+    models::AdviceArticle,
     queries::{
         commons::{BooleanFilterInput, StringFilterInput},
         external_media::ListExternalMediaVariables,
@@ -37,6 +40,12 @@ pub fn get_announcement_article(announcement_id: String) -> Result<Article, Erro
     let id: cynic::Id = announcement_id.into();
     let vars = GetArticleVariables { id };
     get_entity::<Article>(vars)
+}
+pub fn get_advice_article(advice_id: String) -> Result<Article, Error> {
+    use queries::advice_article::GetAdviceArticleVariables;
+    let id: cynic::Id = advice_id.into();
+    let vars = GetAdviceArticleVariables { id };
+    Ok(get_entity::<AdviceArticle>(vars)?.into())
 }
 pub fn list_external_media(
     options: Options<ExternalMediaFilter>,
@@ -71,6 +80,22 @@ pub fn list_announcement(
         sort,
     };
     list_entity::<Announcement>(vars)
+}
+pub fn list_advice(options: Options<AdviceFilter>) -> Result<Paged<Advice>, Error> {
+    use queries::advice::ListAdviceVariables;
+
+    let pagination = options.pagination;
+    let sort: Option<Vec<Option<String>>> = match options.sort {
+        empty if empty.is_empty() => None,
+        otherwise => Some(otherwise.into_iter().map(Some).collect()),
+    };
+
+    let vars = ListAdviceVariables {
+        filters: None,
+        pagination,
+        sort,
+    };
+    list_entity::<Advice>(vars)
 }
 
 pub fn get_cat(id: String) -> Result<Cat, Error> {

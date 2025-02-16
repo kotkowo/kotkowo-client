@@ -101,6 +101,13 @@ impl<
     module = "Kotkowo.Client.Announcement.Filter"
 )]
 pub struct AnnouncementFilter {}
+#[derive(Debug, Default)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Advice.Filter"
+)]
+pub struct AdviceFilter {}
 
 #[derive(Debug, Default)]
 #[cfg_attr(

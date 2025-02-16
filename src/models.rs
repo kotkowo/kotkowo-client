@@ -3,6 +3,8 @@ use crate::queries::commons::{ContactInformation, DateTime};
 use crate::queries::looking_for_home::LookingForAdoptionCat;
 use crate::queries::{
     adopted_cat::AdoptedCat as SourceAdoptedCat,
+    advice::Advice as SourceAdvice,
+    advice_article::Advice as SourceArticleAdvice,
     announcement::Announcement as SourceAnnouncement,
     announcement_article::{
         Announcement as SourceArticleAnnouncement, Article as SourceArticle, ArticleEntity,
@@ -301,6 +303,33 @@ impl TryFrom<SourceFoundCat> for FoundCat {
 #[cfg_attr(
     feature = "elixir_support",
     derive(rustler::NifStruct),
+    module = "Kotkowo.Client.AdviceArticle"
+)]
+pub struct AdviceArticle {
+    pub id: Option<String>,
+    pub title: String,
+    pub image: Option<Image>,
+    pub introduction: String,
+    pub content: String,
+    pub tags: Vec<String>,
+}
+impl From<AdviceArticle> for Article {
+    fn from(advice_article: AdviceArticle) -> Self {
+        Article {
+            id: advice_article.id,
+            title: advice_article.title,
+            image: advice_article.image,
+            introduction: advice_article.introduction,
+            content: advice_article.content,
+            tags: advice_article.tags,
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
     module = "Kotkowo.Client.Article"
 )]
 pub struct Article {
@@ -310,6 +339,40 @@ pub struct Article {
     pub introduction: String,
     pub content: String,
     pub tags: Vec<String>,
+}
+impl TryFrom<SourceArticleAdvice> for AdviceArticle {
+    type Error = Error;
+    fn try_from(value: SourceArticleAdvice) -> Result<AdviceArticle, Error> {
+        let SourceArticleAdvice {
+            article,
+            title,
+            tags,
+        } = value;
+        let ArticleEntityResponse { data } = article.context(MissingAttributeSnafu {})?;
+        let ArticleEntity { attributes, id } = data.context(MissingAttributeSnafu {})?;
+        let SourceArticle {
+            image,
+            content,
+            introduction,
+        } = attributes.context(MissingAttributeSnafu {})?;
+        let image: Option<Image> = image.try_into().ok();
+        let tags: Vec<String> = tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
+        let id: Option<String> = id.map(|id| id.into_inner());
+        Ok(AdviceArticle {
+            id,
+            title,
+            image,
+            content,
+            introduction,
+            tags,
+        })
+    }
 }
 
 impl TryFrom<SourceArticleAnnouncement> for Article {
@@ -383,6 +446,41 @@ impl From<SourceExternalMedia> for ExternalMedia {
             media_url,
             tags,
             image,
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.Advice"
+)]
+pub struct Advice {
+    pub id: Option<String>,
+    pub title: String,
+    pub image: Option<Image>,
+    pub tags: Vec<String>,
+}
+
+impl From<SourceAdvice> for Advice {
+    fn from(value: SourceAdvice) -> Self {
+        let SourceAdvice {
+            title, image, tags, ..
+        } = value;
+        let image: Option<Image> = image.try_into().ok();
+        let tags: Vec<String> = tags.map_or_else(Vec::new, |tag_collection| {
+            tag_collection
+                .data
+                .into_iter()
+                .filter_map(|tag_entity| tag_entity.attributes.map(|tag| tag.text))
+                .collect()
+        });
+        Advice {
+            id: None, // we will skip the id for now
+            title,
+            image,
+            tags,
         }
     }
 }
