@@ -33,6 +33,8 @@ use crate::{
 };
 mod entity;
 
+const DEFAULT_SORT: [&str; 1] = ["updatedAt:desc"];
+
 // this should work fine but breaks rust-analyzer
 // pub type Result<T, E = Error> = std::result::Result<T, E>;
 pub fn get_announcement_article(announcement_id: String) -> Result<Article, Error> {
@@ -51,8 +53,14 @@ pub fn list_external_media(
     options: Options<ExternalMediaFilter>,
 ) -> Result<Paged<ExternalMedia>, Error> {
     let pagination = options.pagination;
+
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
 
@@ -70,7 +78,12 @@ pub fn list_announcement(
 
     let pagination = options.pagination;
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
 
@@ -86,7 +99,12 @@ pub fn list_advice(options: Options<AdviceFilter>) -> Result<Paged<Advice>, Erro
 
     let pagination = options.pagination;
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
 
@@ -129,7 +147,12 @@ pub fn list_adopted_cat(
     );
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
 
@@ -245,7 +268,17 @@ pub fn list_supporters_with_virtual_cats(
     use queries::virtual_cat::ListSupporterWithCatsVariables;
 
     let pagination = pagination.unwrap_or_default();
-    let sort: Option<Vec<Option<String>>> = sort.map(|s| s.into_iter().map(Some).collect());
+    let sort: Option<Vec<Option<String>>> = sort.map_or_else(
+        || {
+            Some(
+                DEFAULT_SORT
+                    .iter()
+                    .map(|&slice| Some(slice.to_string()))
+                    .collect(),
+            )
+        },
+        |s| Some(s.into_iter().map(Some).collect()),
+    );
     let vars = ListSupporterWithCatsVariables { pagination, sort };
 
     list_entity::<Supporter>(vars)
@@ -258,7 +291,12 @@ pub fn list_lost_cat(options: Options<CatFilter>) -> Result<Paged<LostCat>, Erro
         .map_or_else(CatFiltersInput::default, |filter| filter.into());
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
     let vars = ListLostCatVariables {
@@ -277,7 +315,12 @@ pub fn list_found_cat(options: Options<CatFilter>) -> Result<Paged<FoundCat>, Er
         .map_or_else(CatFiltersInput::default, |filter| filter.into());
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
     let vars = ListFoundCatVariables {
@@ -300,7 +343,12 @@ pub fn list_looking_for_adoption_cat(
         .map_or_else(CatFiltersInput::default, |filter| filter.into());
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
     let vars = ListLookingForAdoptionVariables {
@@ -326,7 +374,12 @@ pub fn list_virtual_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error
         .map_or_else(CatFiltersInput::default, |filter| filter.into());
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
     let vars = ListVirtualCatVariables {
@@ -398,7 +451,12 @@ pub fn list_cat(options: Options<CatFilter>) -> Result<Paged<Cat>, Error> {
         .map_or_else(CatFiltersInput::default, |filter| filter.into());
     let pagination = options.pagination.unwrap_or_default();
     let sort: Option<Vec<Option<String>>> = match options.sort {
-        empty if empty.is_empty() => None,
+        empty if empty.is_empty() => Some(
+            DEFAULT_SORT
+                .iter()
+                .map(|&slice| Some(slice.to_string()))
+                .collect(),
+        ),
         otherwise => Some(otherwise.into_iter().map(Some).collect()),
     };
     let vars = ListCatVariables {
