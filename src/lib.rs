@@ -5,18 +5,23 @@ mod options;
 mod queries;
 mod schema;
 
+use entity::mutate_entity;
 pub use errors::*;
 pub use models::{
     AdoptedCat, Advice, Age, Announcement, Article, Cat, Color, ExternalMedia, FoundCat,
-    LookingForHomeCat, LostCat, Paged, Sex, Supporter,
+    LookingForHomeCat, LostCat, Paged, Sex, Supporter, ViewUpdate,
 };
+use models::{UpdateViewsResponse, ViewPullDateTime};
 pub use options::{
     AdviceFilter, AnnouncementFilter, BetweenDateTime, CatFilter, ExternalMediaFilter, Options,
 };
 pub use queries::commons::{ContactInformation, PaginationArg};
 
 use queries::{
-    cat::CatFiltersInput, commons::DateTime, looking_for_home::ListLookingForAdoptionVariables,
+    cat::CatFiltersInput,
+    commons::DateTime,
+    looking_for_home::ListLookingForAdoptionVariables,
+    update_views::{IncrementFieldInput, UpdateViewsVariables},
 };
 use snafu::{OptionExt, ResultExt};
 use std::env;
@@ -104,6 +109,24 @@ pub fn get_cat(id: String) -> Result<Cat, Error> {
 
     let id: cynic::Id = id.into();
     get_entity::<Cat>(GetCatVariables { id })
+}
+
+pub fn get_last_view_pull_utc() -> Result<String, Error> {
+    get_entity::<ViewPullDateTime>(()).map(|datetime| datetime.datetime)
+}
+
+pub fn update_views_and_last_pull(
+    pull_date: String,
+    updates: Vec<ViewUpdate>,
+) -> Result<bool, Error> {
+    Ok(mutate_entity::<UpdateViewsResponse>(UpdateViewsVariables {
+        pull_date,
+        updates: updates
+            .into_iter()
+            .map(|view| Into::<IncrementFieldInput>::into(view))
+            .collect(),
+    })?
+    .response)
 }
 
 pub fn list_adopted_cat(
@@ -434,9 +457,10 @@ fn get_client() -> Result<reqwest::blocking::Client, Error> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        get_announcement_article, get_cat, get_cat_by_slug, list_adopted_cat, list_announcement,
-        list_cat, list_external_media, list_found_cat, list_looking_for_adoption_cat,
-        list_lost_cat, list_supporters_with_virtual_cats, list_virtual_cat, Options, PaginationArg,
+        get_announcement_article, get_cat, get_cat_by_slug, get_last_view_pull_utc,
+        list_adopted_cat, list_announcement, list_cat, list_external_media, list_found_cat,
+        list_looking_for_adoption_cat, list_lost_cat, list_supporters_with_virtual_cats,
+        list_virtual_cat, Options, PaginationArg,
     };
 
     #[test]
@@ -512,5 +536,11 @@ mod tests {
         let opts = Options::default();
         let media = list_external_media(opts);
         assert!(media.is_ok());
+    }
+    #[test]
+    fn get_pulldate_test() {
+        let pulldate = get_last_view_pull_utc();
+        println!("{:?}", pulldate);
+        assert!(pulldate.is_ok());
     }
 }

@@ -1,8 +1,12 @@
-use crate::models::{Advice, AdviceArticle, ExternalMedia, LostCat};
+use crate::models::{
+    Advice, AdviceArticle, ExternalMedia, LostCat, UpdateViewsResponse, ViewPullDateTime,
+};
 
 use crate::queries::advice::{ListAdvice, ListAdviceVariables};
 use crate::queries::advice_article::{GetAdviceArticle, GetAdviceArticleVariables};
 use crate::queries::external_media::{ListExternalMedia, ListExternalMediaVariables};
+use crate::queries::last_view_pull::GetLastViewPull;
+use crate::queries::update_views::{UpdateViews, UpdateViewsVariables};
 use crate::queries::{
     adopted_cat::{ListAdoptedCat, ListAdoptedCatVariables},
     announcement::{ListAnnouncements, ListAnnouncementsVariables},
@@ -18,9 +22,37 @@ use crate::{
     Error, FoundCat, LookingForHomeCat, MissingAttributeSnafu, Paged, Supporter,
 };
 use cynic::http::ReqwestBlockingExt;
-use cynic::{GraphQlResponse, Operation, QueryBuilder};
+use cynic::{GraphQlResponse, MutationBuilder, Operation, QueryBuilder};
 use snafu::{OptionExt, ResultExt};
 use std::env;
+
+#[cfg(not(feature = "elixir_support"))]
+pub trait MutableEntity: Sized {
+    type Variables: serde::Serialize;
+    type MutationType: MutationBuilder<Self::Variables> + 'static + serde::de::DeserializeOwned; // Divine Intellect
+    type ResponseData;
+
+    fn build_mutation(vars: Self::Variables) -> Operation<Self::MutationType, Self::Variables> {
+        Self::MutationType::build(vars)
+    }
+    fn extract_singular_data(
+        response_data: GraphQlResponse<Self::MutationType>,
+    ) -> Result<Self, Error>;
+}
+
+#[cfg(feature = "elixir_support")]
+pub trait MutableEntity: Sized + rustler::Encoder {
+    type Variables: serde::Serialize;
+    type MutationType: MutationBuilder<Self::Variables> + 'static + serde::de::DeserializeOwned; // Divine Intellect
+    type ResponseData;
+
+    fn build_mutation(vars: Self::Variables) -> Operation<Self::MutationType, Self::Variables> {
+        Self::MutationType::build(vars)
+    }
+    fn extract_singular_data(
+        response_data: GraphQlResponse<Self::MutationType>,
+    ) -> Result<Self, Error>;
+}
 
 #[cfg(feature = "elixir_support")]
 pub trait SingularEntity: Sized + rustler::Encoder {
@@ -50,6 +82,35 @@ pub trait SingularEntity: Sized {
         response_data: GraphQlResponse<Self::QueryType>,
     ) -> Result<Self, Error>;
 }
+
+pub fn mutate_entity<T: MutableEntity>(variables: T::Variables) -> Result<T, Error> {
+    let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
+
+    let vars_str = serde_json::to_string(&variables);
+
+    let operation: Operation<T::MutationType, T::Variables> = T::build_mutation(variables);
+
+    let query = operation.query.clone();
+    let client = get_client()?;
+    let response = client
+        .post(endpoint)
+        .run_graphql(operation)
+        .context(CynicRequestSnafu {})?;
+
+    if let Some(err) = response.errors {
+        let message = format!(
+            "Variables:\n{}\nGraphQL:\n{}\nError:\n{:?}",
+            vars_str.unwrap(),
+            query,
+            err
+        )
+        .to_string();
+
+        return Err(Error::RequestResultedInError { message });
+    }
+    T::extract_singular_data(response)
+}
+
 pub fn get_entity<T: SingularEntity>(variables: T::Variables) -> Result<T, Error> {
     let endpoint = env::var("STRAPI_ENDPOINT").context(EnvVarMissingSnafu {})?;
 
@@ -501,6 +562,47 @@ impl SingularEntity for Article {
             .context(MissingAttributeSnafu {})?;
 
         source_announcement.try_into()
+    }
+}
+impl SingularEntity for ViewPullDateTime {
+    type Variables = ();
+    type QueryType = GetLastViewPull;
+    type ResponseData = GraphQlResponse<Self::QueryType>;
+
+    fn extract_singular_data(
+        response_data: GraphQlResponse<Self::QueryType>,
+    ) -> Result<ViewPullDateTime, Error> {
+        let datetime = response_data
+            .data
+            .context(MissingAttributeSnafu {})?
+            .last_view_pull
+            .context(MissingAttributeSnafu {})?
+            .data
+            .context(MissingAttributeSnafu {})?
+            .attributes
+            .context(MissingAttributeSnafu {})?
+            .pull_date
+            .0;
+
+        Ok(ViewPullDateTime { datetime })
+    }
+}
+
+impl MutableEntity for UpdateViewsResponse {
+    type Variables = UpdateViewsVariables;
+    type MutationType = UpdateViews;
+    type ResponseData = GraphQlResponse<Self::MutationType>;
+
+    fn extract_singular_data(
+        response_data: GraphQlResponse<Self::MutationType>,
+    ) -> Result<UpdateViewsResponse, Error> {
+        let response = response_data
+            .data
+            .context(MissingAttributeSnafu {})?
+            .increment_fields_and_update_pull_date
+            .context(MissingAttributeSnafu {})?;
+
+        Ok(UpdateViewsResponse { response })
     }
 }
 
