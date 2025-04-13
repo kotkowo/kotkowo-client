@@ -1,6 +1,7 @@
 use crate::errors::{Error, MissingAttributeSnafu};
 use crate::queries::commons::{ContactInformation, DateTime};
 use crate::queries::looking_for_home::LookingForAdoptionCat;
+use crate::queries::update_views::IncrementFieldInput;
 use crate::queries::{
     adopted_cat::AdoptedCat as SourceAdoptedCat,
     advice::Advice as SourceAdvice,
@@ -461,12 +462,17 @@ pub struct Advice {
     pub title: String,
     pub image: Option<Image>,
     pub tags: Vec<String>,
+    pub views: i32,
 }
 
 impl From<SourceAdvice> for Advice {
     fn from(value: SourceAdvice) -> Self {
         let SourceAdvice {
-            title, image, tags, ..
+            title,
+            image,
+            tags,
+            views,
+            ..
         } = value;
         let image: Option<Image> = image.try_into().ok();
         let tags: Vec<String> = tags.map_or_else(Vec::new, |tag_collection| {
@@ -478,6 +484,7 @@ impl From<SourceAdvice> for Advice {
         });
         Advice {
             id: None, // we will skip the id for now
+            views,
             title,
             image,
             tags,
@@ -496,6 +503,7 @@ pub struct Announcement {
     pub title: String,
     pub tags: Vec<String>,
     pub image: Option<Image>,
+    pub views: i32,
 }
 
 impl From<SourceAnnouncement> for Announcement {
@@ -504,6 +512,7 @@ impl From<SourceAnnouncement> for Announcement {
             title,
             image,
             announcement_tags,
+            views,
             ..
         } = value;
         let image: Option<Image> = image.try_into().ok();
@@ -519,7 +528,50 @@ impl From<SourceAnnouncement> for Announcement {
             id: None,
             title,
             tags,
+            views,
             image,
+        }
+    }
+}
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client._UpdateViewsResponse"
+)]
+pub struct UpdateViewsResponse {
+    pub response: bool,
+}
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client._ViewPullDateTime"
+)]
+pub struct ViewPullDateTime {
+    pub datetime: String,
+}
+
+#[derive(Debug)]
+#[cfg_attr(
+    feature = "elixir_support",
+    derive(rustler::NifStruct),
+    module = "Kotkowo.Client.ViewUpdate"
+)]
+pub struct ViewUpdate {
+    pub content_type: String,
+    pub id: String,
+    pub field: String,
+    pub amount: i32,
+}
+
+impl From<ViewUpdate> for IncrementFieldInput {
+    fn from(value: ViewUpdate) -> Self {
+        IncrementFieldInput {
+            content_type: value.content_type,
+            id: value.id.into(),
+            field: value.field,
+            amount: value.amount,
         }
     }
 }

@@ -37,6 +37,7 @@ pub struct Announcement {
     pub created_at: Option<DateTime>,
     pub updated_at: Option<DateTime>,
     pub title: String,
+    pub views: i32,
 
     #[cynic(rename = "announcement_tags")]
     pub announcement_tags: Option<AnnouncementTagRelationResponseCollection>,

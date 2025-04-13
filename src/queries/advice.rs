@@ -40,6 +40,7 @@ pub struct Advice {
     pub title: String,
     pub image: UploadFileEntityResponse,
     pub tags: Option<AnnouncementTagRelationResponseCollection>,
+    pub views: i32,
 }
 
 #[derive(cynic::InputObject, Debug)]

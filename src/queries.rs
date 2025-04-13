@@ -8,6 +8,8 @@ pub mod cat_commons;
 pub mod commons;
 pub mod external_media;
 pub mod found_cat;
+pub mod last_view_pull;
 pub mod looking_for_home;
 pub mod lost_cat;
+pub mod update_views;
 pub mod virtual_cat;
