@@ -1,3 +1,186 @@
+input IncrementFieldInput {
+  contentType: String!
+  id: ID!
+  field: String!
+  amount: Int!
+}
+
+type Mutation {
+  incrementField(
+    contentType: String!
+    id: ID!
+    field: String!
+    amount: Int!
+  ): Boolean
+  incrementFields(updates: [IncrementFieldInput!]!): Boolean
+  incrementFieldsAndUpdatePullDate(
+    updates: [IncrementFieldInput!]!
+    pull_date: String
+  ): Boolean
+  createUploadFile(data: UploadFileInput!): UploadFileEntityResponse
+  updateUploadFile(id: ID!, data: UploadFileInput!): UploadFileEntityResponse
+  deleteUploadFile(id: ID!): UploadFileEntityResponse
+  createUploadFolder(data: UploadFolderInput!): UploadFolderEntityResponse
+  updateUploadFolder(
+    id: ID!
+    data: UploadFolderInput!
+  ): UploadFolderEntityResponse
+  deleteUploadFolder(id: ID!): UploadFolderEntityResponse
+  createContentReleasesRelease(
+    data: ContentReleasesReleaseInput!
+  ): ContentReleasesReleaseEntityResponse
+  updateContentReleasesRelease(
+    id: ID!
+    data: ContentReleasesReleaseInput!
+  ): ContentReleasesReleaseEntityResponse
+  deleteContentReleasesRelease(id: ID!): ContentReleasesReleaseEntityResponse
+  createContentReleasesReleaseAction(
+    data: ContentReleasesReleaseActionInput!
+  ): ContentReleasesReleaseActionEntityResponse
+  updateContentReleasesReleaseAction(
+    id: ID!
+    data: ContentReleasesReleaseActionInput!
+  ): ContentReleasesReleaseActionEntityResponse
+  deleteContentReleasesReleaseAction(
+    id: ID!
+  ): ContentReleasesReleaseActionEntityResponse
+  createAdoptedCat(data: AdoptedCatInput!): AdoptedCatEntityResponse
+  updateAdoptedCat(id: ID!, data: AdoptedCatInput!): AdoptedCatEntityResponse
+  deleteAdoptedCat(id: ID!): AdoptedCatEntityResponse
+  createAdvice(data: AdviceInput!): AdviceEntityResponse
+  updateAdvice(id: ID!, data: AdviceInput!): AdviceEntityResponse
+  deleteAdvice(id: ID!): AdviceEntityResponse
+  createAnnouncement(data: AnnouncementInput!): AnnouncementEntityResponse
+  updateAnnouncement(
+    id: ID!
+    data: AnnouncementInput!
+  ): AnnouncementEntityResponse
+  deleteAnnouncement(id: ID!): AnnouncementEntityResponse
+  createAnnouncementTag(
+    data: AnnouncementTagInput!
+  ): AnnouncementTagEntityResponse
+  updateAnnouncementTag(
+    id: ID!
+    data: AnnouncementTagInput!
+  ): AnnouncementTagEntityResponse
+  deleteAnnouncementTag(id: ID!): AnnouncementTagEntityResponse
+  createArticle(data: ArticleInput!): ArticleEntityResponse
+  updateArticle(id: ID!, data: ArticleInput!): ArticleEntityResponse
+  deleteArticle(id: ID!): ArticleEntityResponse
+  createCat(data: CatInput!): CatEntityResponse
+  updateCat(id: ID!, data: CatInput!): CatEntityResponse
+  deleteCat(id: ID!): CatEntityResponse
+  createCatTag(data: CatTagInput!): CatTagEntityResponse
+  updateCatTag(id: ID!, data: CatTagInput!): CatTagEntityResponse
+  deleteCatTag(id: ID!): CatTagEntityResponse
+  createContactInformation(
+    data: ContactInformationInput!
+  ): ContactInformationEntityResponse
+  updateContactInformation(
+    id: ID!
+    data: ContactInformationInput!
+  ): ContactInformationEntityResponse
+  deleteContactInformation(id: ID!): ContactInformationEntityResponse
+  createExternalMedia(data: ExternalMediaInput!): ExternalMediaEntityResponse
+  updateExternalMedia(
+    id: ID!
+    data: ExternalMediaInput!
+  ): ExternalMediaEntityResponse
+  deleteExternalMedia(id: ID!): ExternalMediaEntityResponse
+  createFoundCat(data: FoundCatInput!): FoundCatEntityResponse
+  updateFoundCat(id: ID!, data: FoundCatInput!): FoundCatEntityResponse
+  deleteFoundCat(id: ID!): FoundCatEntityResponse
+  createImage(data: ImageInput!): ImageEntityResponse
+  updateImage(id: ID!, data: ImageInput!): ImageEntityResponse
+  deleteImage(id: ID!): ImageEntityResponse
+  updateLastViewPull(data: LastViewPullInput!): LastViewPullEntityResponse
+  deleteLastViewPull: LastViewPullEntityResponse
+  createLookingForAdoptionCat(
+    data: LookingForAdoptionCatInput!
+  ): LookingForAdoptionCatEntityResponse
+  updateLookingForAdoptionCat(
+    id: ID!
+    data: LookingForAdoptionCatInput!
+  ): LookingForAdoptionCatEntityResponse
+  deleteLookingForAdoptionCat(id: ID!): LookingForAdoptionCatEntityResponse
+  createLostCat(data: LostCatInput!): LostCatEntityResponse
+  updateLostCat(id: ID!, data: LostCatInput!): LostCatEntityResponse
+  deleteLostCat(id: ID!): LostCatEntityResponse
+  createSupporter(data: SupporterInput!): SupporterEntityResponse
+  updateSupporter(id: ID!, data: SupporterInput!): SupporterEntityResponse
+  deleteSupporter(id: ID!): SupporterEntityResponse
+  createVirtualCat(data: VirtualCatInput!): VirtualCatEntityResponse
+  updateVirtualCat(id: ID!, data: VirtualCatInput!): VirtualCatEntityResponse
+  deleteVirtualCat(id: ID!): VirtualCatEntityResponse
+  upload(
+    refId: ID
+    ref: String
+    field: String
+    info: FileInfoInput
+    file: Upload!
+  ): UploadFileEntityResponse!
+  multipleUpload(
+    refId: ID
+    ref: String
+    field: String
+    files: [Upload]!
+  ): [UploadFileEntityResponse]!
+  updateFileInfo(id: ID!, info: FileInfoInput): UploadFileEntityResponse!
+  removeFile(id: ID!): UploadFileEntityResponse
+
+  # Create a new role
+  createUsersPermissionsRole(
+    data: UsersPermissionsRoleInput!
+  ): UsersPermissionsCreateRolePayload
+
+  # Update an existing role
+  updateUsersPermissionsRole(
+    id: ID!
+    data: UsersPermissionsRoleInput!
+  ): UsersPermissionsUpdateRolePayload
+
+  # Delete an existing role
+  deleteUsersPermissionsRole(id: ID!): UsersPermissionsDeleteRolePayload
+
+  # Create a new user
+  createUsersPermissionsUser(
+    data: UsersPermissionsUserInput!
+  ): UsersPermissionsUserEntityResponse!
+
+  # Update an existing user
+  updateUsersPermissionsUser(
+    id: ID!
+    data: UsersPermissionsUserInput!
+  ): UsersPermissionsUserEntityResponse!
+
+  # Delete an existing user
+  deleteUsersPermissionsUser(id: ID!): UsersPermissionsUserEntityResponse!
+  login(input: UsersPermissionsLoginInput!): UsersPermissionsLoginPayload!
+
+  # Register a user
+  register(input: UsersPermissionsRegisterInput!): UsersPermissionsLoginPayload!
+
+  # Request a reset password token
+  forgotPassword(email: String!): UsersPermissionsPasswordPayload
+
+  # Reset user password. Confirm with a code (resetToken from forgotPassword)
+  resetPassword(
+    password: String!
+    passwordConfirmation: String!
+    code: String!
+  ): UsersPermissionsLoginPayload
+
+  # Change user password. Confirm with the current password.
+  changePassword(
+    currentPassword: String!
+    password: String!
+    passwordConfirmation: String!
+  ): UsersPermissionsLoginPayload
+
+  # Confirm an email users email address
+  emailConfirmation(confirmation: String!): UsersPermissionsLoginPayload
+}
+
 # The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 scalar JSON
 
@@ -678,6 +861,7 @@ input AdviceFiltersInput {
   title: StringFilterInput
   tags: AnnouncementTagFiltersInput
   article: ArticleFiltersInput
+  views: IntFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -691,6 +875,7 @@ input AdviceInput {
   tags: [ID]
   article: ID
   image: ID
+  views: Int
   publishedAt: DateTime
 }
 
@@ -703,6 +888,7 @@ type Advice {
   ): AnnouncementTagRelationResponseCollection
   article: ArticleEntityResponse
   image: UploadFileEntityResponse!
+  views: Int!
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -727,6 +913,7 @@ input AnnouncementFiltersInput {
   title: StringFilterInput
   announcement_tags: AnnouncementTagFiltersInput
   article: ArticleFiltersInput
+  views: IntFilterInput
   createdAt: DateTimeFilterInput
   updatedAt: DateTimeFilterInput
   publishedAt: DateTimeFilterInput
@@ -740,6 +927,7 @@ input AnnouncementInput {
   title: String
   announcement_tags: [ID]
   article: ID
+  views: Int
   publishedAt: DateTime
 }
 
@@ -752,6 +940,7 @@ type Announcement {
     sort: [String] = []
   ): AnnouncementTagRelationResponseCollection
   article: ArticleEntityResponse
+  views: Int!
   createdAt: DateTime
   updatedAt: DateTime
   publishedAt: DateTime
@@ -854,43 +1043,6 @@ type ArticleEntityResponse {
 
 type ArticleEntityResponseCollection {
   data: [ArticleEntity!]!
-  meta: ResponseCollectionMeta!
-}
-
-input ArticleViewFiltersInput {
-  id: IDFilterInput
-  client_address: StringFilterInput
-  article: ArticleFiltersInput
-  createdAt: DateTimeFilterInput
-  updatedAt: DateTimeFilterInput
-  and: [ArticleViewFiltersInput]
-  or: [ArticleViewFiltersInput]
-  not: ArticleViewFiltersInput
-}
-
-input ArticleViewInput {
-  client_address: String
-  article: ID
-}
-
-type ArticleView {
-  client_address: String!
-  article: ArticleEntityResponse
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-type ArticleViewEntity {
-  id: ID
-  attributes: ArticleView
-}
-
-type ArticleViewEntityResponse {
-  data: ArticleViewEntity
-}
-
-type ArticleViewEntityResponseCollection {
-  data: [ArticleViewEntity!]!
   meta: ResponseCollectionMeta!
 }
 
@@ -1240,6 +1392,25 @@ type ImageRelationResponseCollection {
   data: [ImageEntity!]!
 }
 
+input LastViewPullInput {
+  pull_date: DateTime
+}
+
+type LastViewPull {
+  pull_date: DateTime!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type LastViewPullEntity {
+  id: ID
+  attributes: LastViewPull
+}
+
+type LastViewPullEntityResponse {
+  data: LastViewPullEntity
+}
+
 input LookingForAdoptionCatFiltersInput {
   id: IDFilterInput
   cat: CatFiltersInput
@@ -1453,13 +1624,13 @@ union GenericMorph =
   | Announcement
   | AnnouncementTag
   | Article
-  | ArticleView
   | Cat
   | CatTag
   | ContactInformation
   | ExternalMedia
   | FoundCat
   | Image
+  | LastViewPull
   | LookingForAdoptionCat
   | LostCat
   | Supporter
@@ -1606,12 +1777,6 @@ type Query {
     sort: [String] = []
     publicationState: PublicationState = LIVE
   ): ArticleEntityResponseCollection
-  articleView(id: ID): ArticleViewEntityResponse
-  articleViews(
-    filters: ArticleViewFiltersInput
-    pagination: PaginationArg = {}
-    sort: [String] = []
-  ): ArticleViewEntityResponseCollection
   cat(id: ID): CatEntityResponse
   cats(
     filters: CatFiltersInput
@@ -1652,6 +1817,7 @@ type Query {
     pagination: PaginationArg = {}
     sort: [String] = []
   ): ImageEntityResponseCollection
+  lastViewPull: LastViewPullEntityResponse
   lookingForAdoptionCat(id: ID): LookingForAdoptionCatEntityResponse
   lookingForAdoptionCats(
     filters: LookingForAdoptionCatFiltersInput
@@ -1681,170 +1847,4 @@ type Query {
     publicationState: PublicationState = LIVE
   ): VirtualCatEntityResponseCollection
   me: UsersPermissionsMe
-}
-
-type Mutation {
-  createUploadFile(data: UploadFileInput!): UploadFileEntityResponse
-  updateUploadFile(id: ID!, data: UploadFileInput!): UploadFileEntityResponse
-  deleteUploadFile(id: ID!): UploadFileEntityResponse
-  createUploadFolder(data: UploadFolderInput!): UploadFolderEntityResponse
-  updateUploadFolder(
-    id: ID!
-    data: UploadFolderInput!
-  ): UploadFolderEntityResponse
-  deleteUploadFolder(id: ID!): UploadFolderEntityResponse
-  createContentReleasesRelease(
-    data: ContentReleasesReleaseInput!
-  ): ContentReleasesReleaseEntityResponse
-  updateContentReleasesRelease(
-    id: ID!
-    data: ContentReleasesReleaseInput!
-  ): ContentReleasesReleaseEntityResponse
-  deleteContentReleasesRelease(id: ID!): ContentReleasesReleaseEntityResponse
-  createContentReleasesReleaseAction(
-    data: ContentReleasesReleaseActionInput!
-  ): ContentReleasesReleaseActionEntityResponse
-  updateContentReleasesReleaseAction(
-    id: ID!
-    data: ContentReleasesReleaseActionInput!
-  ): ContentReleasesReleaseActionEntityResponse
-  deleteContentReleasesReleaseAction(
-    id: ID!
-  ): ContentReleasesReleaseActionEntityResponse
-  createAdoptedCat(data: AdoptedCatInput!): AdoptedCatEntityResponse
-  updateAdoptedCat(id: ID!, data: AdoptedCatInput!): AdoptedCatEntityResponse
-  deleteAdoptedCat(id: ID!): AdoptedCatEntityResponse
-  createAdvice(data: AdviceInput!): AdviceEntityResponse
-  updateAdvice(id: ID!, data: AdviceInput!): AdviceEntityResponse
-  deleteAdvice(id: ID!): AdviceEntityResponse
-  createAnnouncement(data: AnnouncementInput!): AnnouncementEntityResponse
-  updateAnnouncement(
-    id: ID!
-    data: AnnouncementInput!
-  ): AnnouncementEntityResponse
-  deleteAnnouncement(id: ID!): AnnouncementEntityResponse
-  createAnnouncementTag(
-    data: AnnouncementTagInput!
-  ): AnnouncementTagEntityResponse
-  updateAnnouncementTag(
-    id: ID!
-    data: AnnouncementTagInput!
-  ): AnnouncementTagEntityResponse
-  deleteAnnouncementTag(id: ID!): AnnouncementTagEntityResponse
-  createArticle(data: ArticleInput!): ArticleEntityResponse
-  updateArticle(id: ID!, data: ArticleInput!): ArticleEntityResponse
-  deleteArticle(id: ID!): ArticleEntityResponse
-  createArticleView(data: ArticleViewInput!): ArticleViewEntityResponse
-  updateArticleView(id: ID!, data: ArticleViewInput!): ArticleViewEntityResponse
-  deleteArticleView(id: ID!): ArticleViewEntityResponse
-  createCat(data: CatInput!): CatEntityResponse
-  updateCat(id: ID!, data: CatInput!): CatEntityResponse
-  deleteCat(id: ID!): CatEntityResponse
-  createCatTag(data: CatTagInput!): CatTagEntityResponse
-  updateCatTag(id: ID!, data: CatTagInput!): CatTagEntityResponse
-  deleteCatTag(id: ID!): CatTagEntityResponse
-  createContactInformation(
-    data: ContactInformationInput!
-  ): ContactInformationEntityResponse
-  updateContactInformation(
-    id: ID!
-    data: ContactInformationInput!
-  ): ContactInformationEntityResponse
-  deleteContactInformation(id: ID!): ContactInformationEntityResponse
-  createExternalMedia(data: ExternalMediaInput!): ExternalMediaEntityResponse
-  updateExternalMedia(
-    id: ID!
-    data: ExternalMediaInput!
-  ): ExternalMediaEntityResponse
-  deleteExternalMedia(id: ID!): ExternalMediaEntityResponse
-  createFoundCat(data: FoundCatInput!): FoundCatEntityResponse
-  updateFoundCat(id: ID!, data: FoundCatInput!): FoundCatEntityResponse
-  deleteFoundCat(id: ID!): FoundCatEntityResponse
-  createImage(data: ImageInput!): ImageEntityResponse
-  updateImage(id: ID!, data: ImageInput!): ImageEntityResponse
-  deleteImage(id: ID!): ImageEntityResponse
-  createLookingForAdoptionCat(
-    data: LookingForAdoptionCatInput!
-  ): LookingForAdoptionCatEntityResponse
-  updateLookingForAdoptionCat(
-    id: ID!
-    data: LookingForAdoptionCatInput!
-  ): LookingForAdoptionCatEntityResponse
-  deleteLookingForAdoptionCat(id: ID!): LookingForAdoptionCatEntityResponse
-  createLostCat(data: LostCatInput!): LostCatEntityResponse
-  updateLostCat(id: ID!, data: LostCatInput!): LostCatEntityResponse
-  deleteLostCat(id: ID!): LostCatEntityResponse
-  createSupporter(data: SupporterInput!): SupporterEntityResponse
-  updateSupporter(id: ID!, data: SupporterInput!): SupporterEntityResponse
-  deleteSupporter(id: ID!): SupporterEntityResponse
-  createVirtualCat(data: VirtualCatInput!): VirtualCatEntityResponse
-  updateVirtualCat(id: ID!, data: VirtualCatInput!): VirtualCatEntityResponse
-  deleteVirtualCat(id: ID!): VirtualCatEntityResponse
-  upload(
-    refId: ID
-    ref: String
-    field: String
-    info: FileInfoInput
-    file: Upload!
-  ): UploadFileEntityResponse!
-  multipleUpload(
-    refId: ID
-    ref: String
-    field: String
-    files: [Upload]!
-  ): [UploadFileEntityResponse]!
-  updateFileInfo(id: ID!, info: FileInfoInput): UploadFileEntityResponse!
-  removeFile(id: ID!): UploadFileEntityResponse
-
-  # Create a new role
-  createUsersPermissionsRole(
-    data: UsersPermissionsRoleInput!
-  ): UsersPermissionsCreateRolePayload
-
-  # Update an existing role
-  updateUsersPermissionsRole(
-    id: ID!
-    data: UsersPermissionsRoleInput!
-  ): UsersPermissionsUpdateRolePayload
-
-  # Delete an existing role
-  deleteUsersPermissionsRole(id: ID!): UsersPermissionsDeleteRolePayload
-
-  # Create a new user
-  createUsersPermissionsUser(
-    data: UsersPermissionsUserInput!
-  ): UsersPermissionsUserEntityResponse!
-
-  # Update an existing user
-  updateUsersPermissionsUser(
-    id: ID!
-    data: UsersPermissionsUserInput!
-  ): UsersPermissionsUserEntityResponse!
-
-  # Delete an existing user
-  deleteUsersPermissionsUser(id: ID!): UsersPermissionsUserEntityResponse!
-  login(input: UsersPermissionsLoginInput!): UsersPermissionsLoginPayload!
-
-  # Register a user
-  register(input: UsersPermissionsRegisterInput!): UsersPermissionsLoginPayload!
-
-  # Request a reset password token
-  forgotPassword(email: String!): UsersPermissionsPasswordPayload
-
-  # Reset user password. Confirm with a code (resetToken from forgotPassword)
-  resetPassword(
-    password: String!
-    passwordConfirmation: String!
-    code: String!
-  ): UsersPermissionsLoginPayload
-
-  # Change user password. Confirm with the current password.
-  changePassword(
-    currentPassword: String!
-    password: String!
-    passwordConfirmation: String!
-  ): UsersPermissionsLoginPayload
-
-  # Confirm an email users email address
-  emailConfirmation(confirmation: String!): UsersPermissionsLoginPayload
 }
